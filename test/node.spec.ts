@@ -34,7 +34,7 @@ function harness(
 		getNode: () => ({ name: 'Collmex', type: 'collmex', typeVersion: 1 }),
 		continueOnFail: () => options.continueOnFail ?? false,
 		getCredentials: async () => ({
-			customerId: '191726',
+			customerId: '123456',
 			username: 'apiuser',
 			password: 'secret',
 			companyId: 1,

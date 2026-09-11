@@ -13,7 +13,7 @@ import { parseCsv } from '../nodes/Collmex/transport/csv';
 import { customerGetResponse, emptyResultResponse, loginErrorResponse } from './fixtures';
 
 const credentials: CollmexCredentials = {
-	customerId: '191726',
+	customerId: '123456',
 	username: 'apiuser',
 	password: 'secret',
 	companyId: 1,
@@ -22,7 +22,7 @@ const credentials: CollmexCredentials = {
 
 describe('buildUrl', () => {
 	it('builds the data exchange endpoint', () => {
-		expect(buildUrl('191726')).toBe('https://www.collmex.de/c.cmx?191726,0,data_exchange');
+		expect(buildUrl('123456')).toBe('https://www.collmex.de/c.cmx?123456,0,data_exchange');
 	});
 });
 

@@ -1,6 +1,6 @@
 /**
- * Responses captured verbatim from the Collmex API (tenant 191726) on
- * 2026-09-11, decoded from the ISO-8859-1 the server sent.
+ * Responses captured verbatim from a live Collmex tenant on 2026-09-11,
+ * decoded from the ISO-8859-1 the server sent.
  *
  * These are the regression backbone: they pin the node against the real
  * wire format rather than against our reading of the documentation. Do not
