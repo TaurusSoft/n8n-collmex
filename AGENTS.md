@@ -80,6 +80,12 @@ project _may_ contain example nodes and/or credentials that need to be
 - If you are updating the npm package version, make sure to **update
   CHANGELOG.md** in the root of the repository
 - Read `.agents/workflow.md` for more info
+- For **library/framework docs** (n8n APIs, `n8n-workflow` types, npm packages)
+  use the **context7 MCP** (`resolve-library-id` → `query-docs`) instead of web
+  search. Useful IDs: `/n8n-io/n8n-docs`, `/n8n-io/n8n`
+- The **Collmex API is NOT in context7** (only an unrelated third-party PHP
+  wrapper). For Collmex CSV/API specifics always use the official docs at
+  `https://www.collmex.de/c.cmx?1005,1,help,api` (ISO-8859-1 encoded)
 
 ## Context-specific docs
 Load these before working on the relevant area:

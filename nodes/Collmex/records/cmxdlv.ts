@@ -1,0 +1,46 @@
+import { customerAddressFields, shippingAddressFields } from './common';
+import type { FieldSpec } from './types';
+import { header, position } from './types';
+
+/** CMXDLV - delivery, 72 fields, one row per line item. */
+export const cmxdlv: FieldSpec[] = [
+	header('recordType', 'C'),
+	header('deliveryId', 'I'),
+	position('positionNumber', 'I'),
+	header('deliveryType', 'I'),
+	header('companyId', 'I'),
+	header('customerId', 'I'),
+	header('orderId', 'I'),
+	...customerAddressFields,
+	header('customerOrderNumber', 'C'),
+	header('deliveryDate', 'D'),
+	header('deliveryText', 'C'),
+	header('closingText', 'C'),
+	header('internalMemo', 'C'),
+	header('deleted', 'I'),
+	header('completed', 'I'),
+	header('status', 'I'),
+	header('language', 'I'),
+	header('processor', 'I'),
+	header('weight', 'N'),
+	header('cashOnDeliveryAmount', 'M'),
+	header('cashOnDeliveryCurrency', 'C'),
+	header('trackingNumber', 'C'),
+	header('shippingType', 'I'),
+	header('deliveryTerms', 'C'),
+	header('deliveryTermsAddition', 'C'),
+	...shippingAddressFields,
+	position('positionType', 'I'),
+	position('productId', 'C'),
+	position('productDescription', 'C'),
+	position('unit', 'C'),
+	position('quantity', 'N'),
+	position('salesOrderPosition', 'I'),
+	position('gtin', 'C'),
+	header('shipmentHandoverRequired', 'I'),
+	header('lastHandedOverOn', 'D'),
+	// Comma separated lists, kept as text.
+	position('batches', 'C'),
+	position('batchDescriptions', 'C'),
+	position('commodityCode', 'C'),
+];
