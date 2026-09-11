@@ -9,8 +9,8 @@ export type CollmexFieldType = 'C' | 'I' | 'N' | 'M' | 'D';
 
 /**
  * When exporting coded enumerations Collmex appends the plain-text label
- * behind the number, e.g. `1 Martin Hey`, `0 30 Tage ohne Abzug` or `0 19%`.
- * Splitting that apart is required, not cosmetic - `Number('1 Martin Hey')`
+ * behind the number, e.g. `1 Max Mustermann`, `0 30 Tage ohne Abzug` or `0 19%`.
+ * Splitting that apart is required, not cosmetic - `Number('1 Max Mustermann')`
  * is `NaN`.
  */
 const CODED_ENUM = /^(-?\d+)\s+(\S.*)$/;

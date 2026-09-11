@@ -1,0 +1,116 @@
+import { describe, expect, it } from 'vitest';
+
+import type { CollmexCredentials } from '../nodes/Collmex/transport/client';
+import {
+	buildRequestBody,
+	buildUrl,
+	extractMessages,
+	extractRecords,
+	findError,
+	resolveResponseEncoding,
+} from '../nodes/Collmex/transport/client';
+import { parseCsv } from '../nodes/Collmex/transport/csv';
+import { customerGetResponse, emptyResultResponse, loginErrorResponse } from './fixtures';
+
+const credentials: CollmexCredentials = {
+	customerId: '191726',
+	username: 'apiuser',
+	password: 'secret',
+	companyId: 1,
+	charset: 'utf8',
+};
+
+describe('buildUrl', () => {
+	it('builds the data exchange endpoint', () => {
+		expect(buildUrl('191726')).toBe('https://www.collmex.de/c.cmx?191726,0,data_exchange');
+	});
+});
+
+describe('buildRequestBody', () => {
+	it('puts the LOGIN record first', () => {
+		const body = buildRequestBody(credentials, [['CUSTOMER_GET', '', '1']]).toString('utf8');
+
+		expect(body).toBe('LOGIN;apiuser;secret;1\nCUSTOMER_GET;;1\n');
+	});
+
+	it('signals ISO-8859-1 with a 0 in the charset field', () => {
+		const body = buildRequestBody({ ...credentials, charset: 'latin1' }, []).toString('latin1');
+
+		expect(body).toBe('LOGIN;apiuser;secret;0\n');
+	});
+
+	it('encodes the body in the requested charset', () => {
+		const records = [['CUSTOMER_GET', 'Müller']];
+
+		const utf8 = buildRequestBody(credentials, records);
+		const latin1 = buildRequestBody({ ...credentials, charset: 'latin1' }, records);
+
+		// 'ü' is two bytes in UTF-8 and one in ISO-8859-1.
+		expect(utf8.length).toBe(latin1.length + 1);
+		expect(latin1.toString('latin1')).toContain('Müller');
+	});
+
+	it('escapes a password containing the delimiter', () => {
+		const body = buildRequestBody(
+			{ ...credentials, password: 'pa;ss"word' },
+			[],
+		).toString('utf8');
+
+		expect(body).toBe('LOGIN;apiuser;"pa;ss""word";1\n');
+		// And it survives a round trip, so the password reaches Collmex intact.
+		expect(parseCsv(body)[0][2]).toBe('pa;ss"word');
+	});
+});
+
+describe('resolveResponseEncoding', () => {
+	it('follows the Content-Type header', () => {
+		expect(resolveResponseEncoding('text/csv; charset=ISO-8859-1')).toBe('latin1');
+		expect(resolveResponseEncoding('text/csv; charset=UTF-8')).toBe('utf8');
+		expect(resolveResponseEncoding('text/csv; charset=utf-8')).toBe('utf8');
+	});
+
+	it('falls back to ISO-8859-1, which is what Collmex actually sends', () => {
+		expect(resolveResponseEncoding(undefined)).toBe('latin1');
+		expect(resolveResponseEncoding('text/csv')).toBe('latin1');
+	});
+});
+
+describe('messages', () => {
+	it('reads the four-field success form', () => {
+		const messages = extractMessages(parseCsv(customerGetResponse));
+
+		expect(messages).toHaveLength(2);
+		expect(messages[0]).toEqual({
+			type: 'S',
+			id: '208013',
+			text: 'CUSTOMER_GET hat 2 Datensätze zurückgegeben',
+			line: undefined,
+		});
+	});
+
+	it('does not treat success messages as failures', () => {
+		expect(findError(extractMessages(parseCsv(customerGetResponse)))).toBeUndefined();
+		expect(findError(extractMessages(parseCsv(emptyResultResponse)))).toBeUndefined();
+	});
+
+	it('reads the five-field error form, including the line number', () => {
+		const error = findError(extractMessages(parseCsv(loginErrorResponse)));
+
+		expect(error?.id).toBe('101026');
+		expect(error?.line).toBe('1');
+		expect(error?.text).toContain('Nur für API');
+	});
+});
+
+describe('extractRecords', () => {
+	it('keeps only the requested record type', () => {
+		const rows = extractRecords(parseCsv(customerGetResponse), 'CMXKND');
+
+		expect(rows).toHaveLength(2);
+		expect(rows.every((row) => row[0] === 'CMXKND')).toBe(true);
+	});
+
+	it('returns nothing when the result set is empty', () => {
+		expect(extractRecords(parseCsv(emptyResultResponse), 'CMXINV')).toEqual([]);
+	});
+});

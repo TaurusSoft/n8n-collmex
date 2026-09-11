@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-collmex",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "n8n community node to read customers, vendors, quotations, sales orders, invoices and deliveries from the Collmex API",
   "license": "MIT",
   "homepage": "https://github.com/martinhey/n8n-collmex#readme",
