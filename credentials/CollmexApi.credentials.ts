@@ -18,7 +18,7 @@ export class CollmexApi implements ICredentialType {
 		dark: 'file:../nodes/Collmex/collmex.dark.svg',
 	};
 
-	documentationUrl = 'https://github.com/martinhey/n8n-collmex?tab=readme-ov-file#credentials';
+	documentationUrl = 'https://github.com/TaurusSoft/n8n-collmex?tab=readme-ov-file#credentials';
 
 	properties: INodeProperties[] = [
 		{
