@@ -91,10 +91,6 @@ Most queries support **Only Changed** together with **System Name**. Collmex sto
 
 ## Version history
 
-### 0.2.0
-
-First working release. Read-only access to customers, vendors, quotations, sales orders, invoices and deliveries.
-
 ### 0.1.0
 
-Project scaffold only; not functional.
+First release. Read-only access to customers, vendors, quotations, sales orders, invoices and deliveries.
