@@ -9,7 +9,7 @@ import type {
 } from 'n8n-workflow';
 
 import type { CollmexCredentials } from '../nodes/Collmex/transport/auth';
-import { applyCollmexAuth, COLLMEX_BASE_URL } from '../nodes/Collmex/transport/auth';
+import { applyCollmexAuth } from '../nodes/Collmex/transport/auth';
 
 /**
  * Collmex authenticates through the first line of the uploaded CSV
@@ -101,9 +101,13 @@ export class CollmexApi implements ICredentialType {
 	 */
 	test: ICredentialTestRequest = {
 		request: {
+			// Spelled out as literals rather than built from a constant: n8n's
+			// automated review inspects this statically and cannot resolve an
+			// identifier imported from another module. `authenticate` replaces
+			// both with the customer specific endpoint before the call goes out.
+			baseURL: 'https://www.collmex.de',
+			url: '/c.cmx',
 			method: 'POST',
-			// Replaced by `authenticate`, which knows the customer number.
-			url: COLLMEX_BASE_URL,
 			headers: { 'Content-Type': 'text/csv' },
 			body: '=CUSTOMER_GET;;{{$credentials.companyId}}\n',
 		},

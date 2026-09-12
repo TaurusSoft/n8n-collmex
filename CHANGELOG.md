@@ -5,6 +5,27 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2]
+
+Addresses the "Missing credential test" rejection from n8n's automated review.
+The credential did define a test, but its endpoint was assembled from an
+imported constant, which the review cannot resolve when it inspects the source
+statically.
+
+### Changed
+
+- The credential test now spells its endpoint out as literal `baseURL` and
+  `url` values, matching the shape used in n8n's node starter kit.
+- `authenticate` clears any `baseURL` it finds, since it replaces `url` with an
+  absolute address.
+- Credential field descriptions no longer embed German text; the Collmex
+  checkbox is referenced as the API-only flag with its German label quoted.
+
+### Added
+
+- Tests covering the credential definition, so the shape the automated review
+  expects cannot regress unnoticed.
+
 ## [0.1.1]
 
 Makes the package pass `@n8n/scan-community-package`, which is a prerequisite

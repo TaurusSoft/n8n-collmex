@@ -50,6 +50,9 @@ export function applyCollmexAuth(
 
 	return {
 		...requestOptions,
+		// `url` is absolute, so any `baseURL` the caller set is dropped rather
+		// than left to be combined with it.
+		baseURL: undefined,
 		url: buildUrl(credentials.customerId),
 		body: Buffer.from(`${login}\n${records}`, charset),
 	};
