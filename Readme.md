@@ -43,7 +43,7 @@ Each resource has an **Options** collection for the filters the corresponding Co
 
 You need a Collmex account with API access, plus a dedicated API user.
 
-1. **Create an API user.** In Collmex go to *Administration → Users → New* and tick **"Nur für API"**. This is mandatory: your normal interactive login is rejected by the API with `MESSAGE;E;101026`. Collmex does not charge for extra users carrying this flag.
+1. **Create an API user.** In Collmex go to *Administration → Users → New* and enable the API-only flag, labelled **"Nur fuer API"** in the German interface. This is mandatory: your normal interactive login is rejected by the API with `MESSAGE;E;101026`. Collmex does not charge for extra users carrying this flag.
 2. **Look up your customer number.** This is your Collmex tenant number, the one that appears in the API endpoint URL.
 3. In n8n create **Collmex API** credentials and fill in:
    - **Customer Number** – your tenant number

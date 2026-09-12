@@ -48,7 +48,7 @@ export class CollmexApi implements ICredentialType {
 			required: true,
 			default: '',
 			description:
-				'A Collmex user that has the "Nur für API" flag set (Administration > Users). The interactive login cannot be used for the API. Extra users with this flag are free of charge.',
+				'A Collmex user with the API-only flag enabled, labelled "Nur fuer API" in the German Collmex interface (Administration > Users). The interactive login cannot be used for the API. Extra users carrying this flag are free of charge.',
 		},
 		{
 			displayName: 'Password',
@@ -114,7 +114,7 @@ export class CollmexApi implements ICredentialType {
 					key: '8',
 					value: 'E',
 					message:
-						'Collmex rejected the credentials. Check the customer number, user and password, and make sure the user has the "Nur für API" flag set in Collmex.',
+						'Collmex rejected the credentials. Check the customer number, user and password, and make sure the user has the API-only flag enabled in Collmex.',
 				},
 			},
 		],
