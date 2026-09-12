@@ -51,7 +51,7 @@ You need a Collmex account with API access, plus a dedicated API user.
    - **Company ID** – the internal company number, `1` unless you run several companies
    - **Request Character Set** – UTF-8 by default; only switch to ISO-8859-1 if you send data that Collmex misreads
 
-Press **Test** to verify. The test reports the actual Collmex message when something is wrong, because Collmex answers a failed login with HTTP 200 rather than an error status.
+Press **Test** to verify. Note that this only confirms Collmex is reachable: the API answers a rejected login with HTTP 200 and an error record in the response body, so a wrong customer number, user or password is not caught by the test and surfaces on the first execution instead, with the message Collmex returned.
 
 ## Compatibility
 
@@ -90,6 +90,10 @@ Most queries support **Only Changed** together with **System Name**. Collmex sto
 * [Collmex API overview](https://www.collmex.de/c.cmx?1005,1,help,api_ueberblick) (German)
 
 ## Version history
+
+### 0.1.4
+
+The credential test no longer detects invalid credentials; see the Credentials section. No change to resources, operations or output.
 
 ### 0.1.3
 

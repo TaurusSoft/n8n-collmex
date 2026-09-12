@@ -5,6 +5,24 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.4]
+
+Third attempt at the "Missing credential test" rejection, isolating the last
+remaining difference between this credential and the packages that pass n8n's
+automated review.
+
+Worth recording: `npx @n8n/scan-community-package`, the tool n8n's own message
+recommends for diagnosing the rejection, reports no problems for 0.1.3 on
+either the `latest` or `stable` tag.
+
+### Removed
+
+- The `responseSuccessBody` rule on the credential test. **The test can no
+  longer detect invalid credentials** - Collmex reports those with HTTP 200 and
+  an error record in the body, which needs exactly such a rule to read. Bad
+  credentials now surface on the first execution instead. Restore the rule once
+  n8n has clarified whether it is supported.
+
 ## [0.1.3]
 
 Second attempt at the "Missing credential test" rejection from n8n's automated
