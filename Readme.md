@@ -91,6 +91,10 @@ Most queries support **Only Changed** together with **System Name**. Collmex sto
 
 ## Version history
 
+### 0.1.3
+
+Makes the credential test self-contained so n8n's automated review can determine it. No change to resources, operations or output.
+
 ### 0.1.2
 
 Fixes the credential test so n8n's automated review recognises it. No change to resources, operations or output.

@@ -5,6 +5,25 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.3]
+
+Second attempt at the "Missing credential test" rejection from n8n's automated
+review. 0.1.2 assumed the endpoint had to be spelled out as literals, which a
+comparison with the verified `@apify/n8n-nodes-apify` disproved - it builds its
+`test.baseURL` from an imported constant and passes.
+
+The working assumption now is that the review determines the test request
+statically and cannot execute the custom `authenticate` function that rewrites
+it. The test therefore no longer depends on that function.
+
+### Changed
+
+- The credential test describes its whole request itself: endpoint and `LOGIN`
+  record are built from credential expressions instead of being filled in by
+  `authenticate`.
+- `applyCollmexAuth` leaves a body that already carries a `LOGIN` record
+  untouched, so the self-contained test request is not given a second one.
+
 ## [0.1.2]
 
 Addresses the "Missing credential test" rejection from n8n's automated review.

@@ -12,13 +12,15 @@ describe('credential definition', () => {
 		expect(credential.test.request).toBeDefined();
 	});
 
-	it('spells the test endpoint out as literals', () => {
-		// The review inspects this statically and cannot resolve an identifier
-		// imported from another module, so these must not be built from a
-		// constant. A rejected submission was caused by exactly that.
+	it('describes the whole test request without relying on authenticate', () => {
+		// n8n's automated review determines the request statically and cannot
+		// execute the custom authenticate function, so endpoint and LOGIN
+		// record are spelled out as credential expressions here.
 		expect(credential.test.request.baseURL).toBe('https://www.collmex.de');
-		expect(credential.test.request.url).toBe('/c.cmx');
+		expect(credential.test.request.url).toContain('{{$credentials.customerId}}');
 		expect(credential.test.request.method).toBe('POST');
+		expect(credential.test.request.body).toMatch(/^=LOGIN;/);
+		expect(credential.test.request.body).toContain('{{$credentials.password}}');
 	});
 
 	it('detects a failed login from the response body', () => {

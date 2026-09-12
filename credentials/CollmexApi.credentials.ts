@@ -101,15 +101,15 @@ export class CollmexApi implements ICredentialType {
 	 */
 	test: ICredentialTestRequest = {
 		request: {
-			// Spelled out as literals rather than built from a constant: n8n's
-			// automated review inspects this statically and cannot resolve an
-			// identifier imported from another module. `authenticate` replaces
-			// both with the customer specific endpoint before the call goes out.
+			// Deliberately self-contained: endpoint and LOGIN record are built
+			// from credential expressions rather than left to `authenticate`,
+			// so the whole request can be determined without executing code.
+			// `authenticate` detects the LOGIN record and leaves it alone.
 			baseURL: 'https://www.collmex.de',
-			url: '/c.cmx',
+			url: '=/c.cmx?{{$credentials.customerId}},0,data_exchange',
 			method: 'POST',
 			headers: { 'Content-Type': 'text/csv' },
-			body: '=CUSTOMER_GET;;{{$credentials.companyId}}\n',
+			body: '=LOGIN;{{$credentials.username}};{{$credentials.password}};1\nCUSTOMER_GET;;{{$credentials.companyId}}\n',
 		},
 		rules: [
 			{
