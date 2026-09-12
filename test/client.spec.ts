@@ -77,19 +77,6 @@ describe('applyCollmexAuth', () => {
 		expect(latin1.toString('latin1')).toContain('Müller');
 	});
 
-	it('does not add a second LOGIN record to a body that has one', () => {
-		// The credential test builds its own, so authenticate must leave it be.
-		const result = applyCollmexAuth(credentials, {
-			url: 'https://www.collmex.de',
-			method: 'POST',
-			body: 'LOGIN;someone;else;1\nCUSTOMER_GET;;1\n',
-		});
-
-		expect((result.body as Buffer).toString('utf8')).toBe(
-			'LOGIN;someone;else;1\nCUSTOMER_GET;;1\n',
-		);
-	});
-
 	it('escapes a password containing the delimiter', () => {
 		const body = authenticate({ password: 'pa;ss"word' }, []).body.toString('utf8');
 

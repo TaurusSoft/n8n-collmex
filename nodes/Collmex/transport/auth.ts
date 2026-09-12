@@ -48,17 +48,9 @@ export function applyCollmexAuth(
 	// a programming error rather than something to recover from.
 	const records = typeof requestOptions.body === 'string' ? requestOptions.body : '';
 
-	// The credential test spells its own LOGIN record out as expressions, so
-	// that the request is fully determined without running this function.
-	// Prepending a second one would make Collmex reject it.
-	const body = records.startsWith('LOGIN;') ? records : `${login}\n${records}`;
-
 	return {
 		...requestOptions,
-		// `url` is absolute, so any `baseURL` the caller set is dropped rather
-		// than left to be combined with it.
-		baseURL: undefined,
 		url: buildUrl(credentials.customerId),
-		body: Buffer.from(body, charset),
+		body: Buffer.from(`${login}\n${records}`, charset),
 	};
 }
