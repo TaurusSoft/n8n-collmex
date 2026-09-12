@@ -16,10 +16,20 @@ needed. This reverts them to the 0.1.1 shape.
 - The credential test is a plain `CUSTOMER_GET` again and goes through
   `authenticate` like every other request, which prepends the `LOGIN` record
   and fills in the customer endpoint. The self-contained variant duplicated the
-  `LOGIN` format and hard-coded the UTF-8 flag in it regardless of the selected
-  request character set.
+  `LOGIN` format in a second place, where it could drift out of step with the
+  encoding the body actually used.
 - `authenticate` no longer special-cases a body that already starts with
   `LOGIN;`, and no longer clears `baseURL`; nothing sets one any more.
+
+### Removed
+
+- The **Request Character Set** credential field. It offered a choice with only
+  one sensible answer, so it now always announces UTF-8 in the `LOGIN` record
+  and encodes the body to match. Supporting ISO-8859-1 would require encoding
+  uploads differently for non-ASCII ('ü' is 1 byte in ISO-8859-1 but 2 in
+  UTF-8), and it cannot represent characters above U+00FF at all. Response
+  decoding was never affected - it follows the `charset` in Collmex's
+  `Content-Type`. Stored values on existing credentials are simply ignored.
 
 ## [0.1.6]
 

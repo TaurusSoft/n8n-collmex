@@ -41,7 +41,6 @@ function harness(
 		username: 'apiuser',
 		password: 'secret',
 		companyId: 1,
-		charset: 'utf8',
 	};
 
 	const context = {

@@ -49,7 +49,6 @@ You need a Collmex account with API access, plus a dedicated API user.
    - **Customer Number** – your tenant number
    - **User** / **Password** – the API user from step 1
    - **Company ID** – the internal company number, `1` unless you run several companies
-   - **Request Character Set** – UTF-8 by default; only switch to ISO-8859-1 if you send data that Collmex misreads
 
 Press **Test** to verify. The test reports the actual Collmex message when something is wrong, because Collmex answers a failed login with HTTP 200 rather than an error status.
 
