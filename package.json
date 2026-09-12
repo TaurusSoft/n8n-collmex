@@ -1,9 +1,9 @@
 {
-  "name": "n8n-nodes-collmex",
+  "name": "@taurussoftware/n8n-nodes-collmex",
   "version": "0.2.0",
   "description": "n8n community node to read customers, vendors, quotations, sales orders, invoices and deliveries from the Collmex API",
   "license": "MIT",
-  "homepage": "https://github.com/martinhey/n8n-collmex#readme",
+  "homepage": "https://github.com/TaurusSoft/n8n-collmex#readme",
   "keywords": [
     "n8n-community-node-package",
     "collmex",
@@ -13,11 +13,11 @@
   ],
   "author": {
     "name": "Martin Hey",
-    "email": "martinhey@gmx.de"
+    "email": "info@taurussoftware.de"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/martinhey/n8n-collmex.git"
+    "url": "https://github.com/TaurusSoft/n8n-collmex.git"
   },
   "scripts": {
     "build": "n8n-node build",
@@ -33,6 +33,9 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "n8n": {
     "n8nNodesApiVersion": 1,
     "strict": true,

@@ -1,4 +1,4 @@
-# n8n-nodes-collmex
+# @taurussoftware/n8n-nodes-collmex
 
 This is an n8n community node. It lets you read data from [Collmex](https://www.collmex.de/) in your n8n workflows.
 
@@ -16,7 +16,13 @@ Collmex is a German cloud ERP suite covering accounting, invoicing, order proces
 
 ## Installation
 
-Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes/installation/) in the n8n community nodes documentation.
+In n8n go to **Settings → Community nodes → Install** and enter the package name:
+
+```
+@taurussoftware/n8n-nodes-collmex
+```
+
+See the [installation guide](https://docs.n8n.io/integrations/community-nodes/installation/) in the n8n community nodes documentation for details.
 
 ## Operations
 
