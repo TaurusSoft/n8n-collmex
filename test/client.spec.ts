@@ -17,7 +17,6 @@ const credentials: CollmexCredentials = {
 	username: 'apiuser',
 	password: 'secret',
 	companyId: 1,
-	charset: 'utf8',
 };
 
 /** Runs the credential's authenticate step over a bare request. */
@@ -60,21 +59,17 @@ describe('applyCollmexAuth', () => {
 		expect(body.toString('utf8')).toBe('LOGIN;apiuser;secret;1\nCUSTOMER_GET;;1\n');
 	});
 
-	it('signals ISO-8859-1 with a 0 in the charset field', () => {
-		const { body } = authenticate({ charset: 'latin1' }, []);
+	it('always announces UTF-8 and encodes the body to match', () => {
+		// Field 4 of LOGIN is fixed at 1. Offering ISO-8859-1 was pointless:
+		// for anything it can represent both encodings are byte identical, and
+		// it would mangle characters above U+00FF.
+		const { body } = authenticate({}, [['CUSTOMER_GET', 'Müller']]);
 
-		expect(body.toString('latin1')).toBe('LOGIN;apiuser;secret;0\n');
-	});
-
-	it('encodes the body in the requested charset', () => {
-		const records = [['CUSTOMER_GET', 'Müller']];
-
-		const utf8 = authenticate({}, records).body;
-		const latin1 = authenticate({ charset: 'latin1' }, records).body;
-
-		// 'ü' is two bytes in UTF-8 and one in ISO-8859-1.
-		expect(utf8.length).toBe(latin1.length + 1);
-		expect(latin1.toString('latin1')).toContain('Müller');
+		expect(body.toString('utf8')).toBe(
+			'LOGIN;apiuser;secret;1\nCUSTOMER_GET;Müller\n',
+		);
+		// 'ü' is two bytes in UTF-8, one more than its length in characters.
+		expect(body.length).toBe(body.toString('utf8').length + 1);
 	});
 
 	it('escapes a password containing the delimiter', () => {

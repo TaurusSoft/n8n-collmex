@@ -13,9 +13,9 @@ describe('credential definition', () => {
 	});
 
 	it('leaves the LOGIN record and endpoint to authenticate', () => {
-		// The LOGIN record carries the charset flag that has to match how the
-		// body is encoded, so only authenticate builds it. The url is a
-		// placeholder that authenticate replaces with the customer endpoint.
+		// Only authenticate builds the LOGIN record, so the test stays a plain
+		// query record. The url is a placeholder authenticate replaces with the
+		// customer endpoint.
 		expect(credential.test.request.url).toBe('https://www.collmex.de');
 		expect(credential.test.request.method).toBe('POST');
 		expect(credential.test.request.body).toMatch(/^=CUSTOMER_GET;/);
@@ -60,7 +60,6 @@ describe('authenticate', () => {
 				username: 'apiuser',
 				password: 'secret',
 				companyId: 1,
-				charset: 'utf8',
 			},
 			{
 				url: 'https://www.collmex.de',

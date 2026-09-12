@@ -21,6 +21,16 @@ needed. This reverts them to the 0.1.1 shape.
 - `authenticate` no longer special-cases a body that already starts with
   `LOGIN;`, and no longer clears `baseURL`; nothing sets one any more.
 
+### Removed
+
+- The **Request Character Set** credential field. It offered a choice with only
+  one sensible answer, so it now always announces UTF-8 in the `LOGIN` record
+  and encodes the body to match. This node only ever uploads query filters; for
+  anything ISO-8859-1 can represent both encodings are byte identical, and
+  ISO-8859-1 would silently mangle characters above U+00FF. Response decoding
+  was never affected - it follows the `charset` in Collmex's `Content-Type`.
+  Stored values on existing credentials are simply ignored.
+
 ## [0.1.6]
 
 No functional change over 0.1.5. Released only because the Creator Portal

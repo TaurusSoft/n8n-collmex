@@ -66,18 +66,6 @@ export class CollmexApi implements ICredentialType {
 			description:
 				'Internal number of the company to query by default, as shown under Administration > Company. Individual operations can override this.',
 		},
-		{
-			displayName: 'Request Character Set',
-			name: 'charset',
-			type: 'options',
-			default: 'utf8',
-			options: [
-				{ name: 'ISO-8859-1', value: 'latin1' },
-				{ name: 'UTF-8', value: 'utf8' },
-			],
-			description:
-				'Character set used for data sent to Collmex. Responses are decoded from whatever Collmex declares in its Content-Type header, independently of this setting.',
-		},
 	];
 
 	authenticate: IAuthenticate = async (
@@ -101,8 +89,8 @@ export class CollmexApi implements ICredentialType {
 	 *
 	 * The request goes through `authenticate` like any other, which prepends
 	 * the LOGIN record and swaps the placeholder url for the customer's
-	 * endpoint. Keeping that logic in one place also keeps the LOGIN charset
-	 * field consistent with how the body is actually encoded.
+	 * endpoint. Keeping that in one place is what lets the test stay a plain
+	 * query record.
 	 */
 	test: ICredentialTestRequest = {
 		request: {
