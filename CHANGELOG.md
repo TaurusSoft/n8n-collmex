@@ -5,6 +5,28 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- Root cause of the recurring "Missing credential test" rejection, found after
+  0.1.5 was rejected with the same message: every release since 0.1.1 was
+  tagged and published from the `chore/community-publish` branch, which was
+  never merged. The repository's default branch `main` still pointed at 0.1.0,
+  whose credential has no `test` property (it relied on `testedBy` in the
+  node). The Creator Portal's pre-check evidently reads the default branch, so
+  it kept seeing 0.1.0 no matter what was published to npm. `main` is now
+  fast-forwarded to the release commits. The explanation given under 0.1.5
+  below (an n8n-side infrastructure bug) was wrong.
+
+  Diagnosis notes, so nobody repeats the detour: the `credential-test-required`
+  ESLint rule bundled in `@n8n/scan-community-package` 0.32.1 and 0.35.0
+  passes on this source, and it also accepts `testedBy`. The Portal pre-check
+  is a separate check that does not accept `testedBy`, matching another
+  report on the n8n forum where a package with only `testedBy` got the
+  identical message:
+  https://community.n8n.io/t/http-credential-validation-workaround/302778
+
 ## [0.1.5]
 
 Restores the `responseSuccessBody` rule removed in 0.1.4. Three releases (0.1.2
