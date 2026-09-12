@@ -9,7 +9,7 @@ import type {
 } from 'n8n-workflow';
 
 import type { CollmexCredentials } from '../nodes/Collmex/transport/auth';
-import { applyCollmexAuth } from '../nodes/Collmex/transport/auth';
+import { applyCollmexAuth, COLLMEX_BASE_URL } from '../nodes/Collmex/transport/auth';
 
 /**
  * Collmex authenticates through the first line of the uploaded CSV
@@ -99,24 +99,18 @@ export class CollmexApi implements ICredentialType {
 	 * the one right after `MESSAGE;` - separates an error (`E`) from a
 	 * successful empty result (`S`) or a data record (a digit).
 	 *
-	 * 0.1.4 removed the `rules` array below on the theory that it was the
-	 * cause of n8n's "Missing credential test" rejection, since it was the
-	 * last structural difference found against verified packages. That theory
-	 * didn't pan out (see CHANGELOG and workflow notes from 2026-09-12) and
-	 * dropping it only cost us the ability to detect bad credentials during
-	 * the test, since Collmex never fails with a non-200 status. Restored.
+	 * The request goes through `authenticate` like any other, which prepends
+	 * the LOGIN record and swaps the placeholder url for the customer's
+	 * endpoint. Keeping that logic in one place also keeps the LOGIN charset
+	 * field consistent with how the body is actually encoded.
 	 */
 	test: ICredentialTestRequest = {
 		request: {
-			// Deliberately self-contained: endpoint and LOGIN record are built
-			// from credential expressions rather than left to `authenticate`,
-			// so the whole request can be determined without executing code.
-			// `authenticate` detects the LOGIN record and leaves it alone.
-			baseURL: 'https://www.collmex.de',
-			url: '=/c.cmx?{{$credentials.customerId}},0,data_exchange',
 			method: 'POST',
+			// Replaced by `authenticate`, which knows the customer number.
+			url: COLLMEX_BASE_URL,
 			headers: { 'Content-Type': 'text/csv' },
-			body: '=LOGIN;{{$credentials.username}};{{$credentials.password}};1\nCUSTOMER_GET;;{{$credentials.companyId}}\n',
+			body: '=CUSTOMER_GET;;{{$credentials.companyId}}\n',
 		},
 		rules: [
 			{

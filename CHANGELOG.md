@@ -5,6 +5,22 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+The package passed verification with 0.1.6 once `main` carried the credential
+test, which confirms that the 0.1.2 and 0.1.3 reworks of the test were never
+needed. This reverts them to the 0.1.1 shape.
+
+### Changed
+
+- The credential test is a plain `CUSTOMER_GET` again and goes through
+  `authenticate` like every other request, which prepends the `LOGIN` record
+  and fills in the customer endpoint. The self-contained variant duplicated the
+  `LOGIN` format and hard-coded the UTF-8 flag in it regardless of the selected
+  request character set.
+- `authenticate` no longer special-cases a body that already starts with
+  `LOGIN;`, and no longer clears `baseURL`; nothing sets one any more.
+
 ## [0.1.6]
 
 No functional change over 0.1.5. Released only because the Creator Portal

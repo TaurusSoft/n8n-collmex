@@ -12,23 +12,20 @@ describe('credential definition', () => {
 		expect(credential.test.request).toBeDefined();
 	});
 
-	it('describes the whole test request without relying on authenticate', () => {
-		// n8n's automated review determines the request statically and cannot
-		// execute the custom authenticate function, so endpoint and LOGIN
-		// record are spelled out as credential expressions here.
-		expect(credential.test.request.baseURL).toBe('https://www.collmex.de');
-		expect(credential.test.request.url).toContain('{{$credentials.customerId}}');
+	it('leaves the LOGIN record and endpoint to authenticate', () => {
+		// The LOGIN record carries the charset flag that has to match how the
+		// body is encoded, so only authenticate builds it. The url is a
+		// placeholder that authenticate replaces with the customer endpoint.
+		expect(credential.test.request.url).toBe('https://www.collmex.de');
 		expect(credential.test.request.method).toBe('POST');
-		expect(credential.test.request.body).toMatch(/^=LOGIN;/);
-		expect(credential.test.request.body).toContain('{{$credentials.password}}');
+		expect(credential.test.request.body).toMatch(/^=CUSTOMER_GET;/);
+		expect(credential.test.request.body).not.toContain('LOGIN');
 	});
 
 	it('flags a rejected login via responseSuccessBody', () => {
 		// Collmex answers bad credentials with HTTP 200 and an error record in
 		// the body (`MESSAGE;E;...`), so only a responseSuccessBody rule can
-		// tell the test apart from a real success. Removing this in 0.1.4 to
-		// chase the "Missing credential test" rejection didn't fix it (see
-		// CHANGELOG) and only cost us the ability to detect bad credentials.
+		// tell the test apart from a real success.
 		const rule = credential.test.rules?.[0];
 
 		expect(rule?.type).toBe('responseSuccessBody');
@@ -66,17 +63,13 @@ describe('authenticate', () => {
 				charset: 'utf8',
 			},
 			{
-				baseURL: 'https://www.collmex.de',
-				url: '/c.cmx',
+				url: 'https://www.collmex.de',
 				method: 'POST',
 				body: 'CUSTOMER_GET;;1\n',
 			},
 		);
 
 		expect(authenticated.url).toBe('https://www.collmex.de/c.cmx?123456,0,data_exchange');
-		// An absolute url plus a leftover baseURL would be combined by the HTTP
-		// client, so the baseURL has to go.
-		expect(authenticated.baseURL).toBeUndefined();
 		expect((authenticated.body as Buffer).toString('utf8')).toBe(
 			'LOGIN;apiuser;secret;1\nCUSTOMER_GET;;1\n',
 		);
