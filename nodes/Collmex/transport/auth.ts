@@ -24,11 +24,12 @@ export function buildUrl(customerId: string): string {
  * number is part of the URL.
  *
  * Field 4 of `LOGIN` selects the character set of the *upload*, and this
- * always announces UTF-8. The only non-ASCII this node ever uploads are free
- * text query filters; for anything ISO-8859-1 can represent the two encodings
- * are byte identical, and ISO-8859-1 would silently mangle characters above
- * U+00FF. The field says nothing about the response, which Collmex encodes as
- * it sees fit and declares in its `Content-Type`.
+ * always announces UTF-8. The flag and the encoding actually used have to
+ * agree, and UTF-8 is the only setting that covers every input: ISO-8859-1
+ * encodes non-ASCII differently ('ü' is one byte there, two in UTF-8) and
+ * cannot represent anything above U+00FF at all. The field says nothing about
+ * the response, which Collmex encodes as it sees fit and declares in its
+ * `Content-Type`.
  *
  * This lives in the credential's `authenticate` function so that the node
  * never has to read the credentials itself.

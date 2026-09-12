@@ -60,9 +60,9 @@ describe('applyCollmexAuth', () => {
 	});
 
 	it('always announces UTF-8 and encodes the body to match', () => {
-		// Field 4 of LOGIN is fixed at 1. Offering ISO-8859-1 was pointless:
-		// for anything it can represent both encodings are byte identical, and
-		// it would mangle characters above U+00FF.
+		// Field 4 of LOGIN is fixed at 1 and the body is encoded to agree with
+		// it. ISO-8859-1 was never worth offering: it encodes non-ASCII
+		// differently and cannot represent anything above U+00FF at all.
 		const { body } = authenticate({}, [['CUSTOMER_GET', 'Müller']]);
 
 		expect(body.toString('utf8')).toBe(
