@@ -5,10 +5,9 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0]
+## [0.1.0]
 
-First working release. The 0.1.0 scaffold targeted a REST API that Collmex does
-not have; everything below replaces it.
+First release.
 
 ### Added
 
@@ -41,7 +40,3 @@ not have; everything below replaces it.
   writes back to Collmex, and this node is read-only.
 - The ZIP/PDF return formats of the document queries are not supported; queries
   always request CSV.
-
-## [0.1.0]
-
-- Initial project scaffold from the n8n community node template. Not functional.
