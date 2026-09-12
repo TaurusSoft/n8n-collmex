@@ -87,21 +87,24 @@ export class CollmexApi implements ICredentialType {
 		applyCollmexAuth(credentials as unknown as CollmexCredentials, requestOptions);
 
 	/**
-	 * This test only confirms that Collmex is reachable and that the request
-	 * is well formed. It cannot confirm the credentials themselves, because
-	 * Collmex answers a rejected login with HTTP 200 and an error record in
-	 * the CSV body. Verified against the live API:
+	 * Collmex reports bad credentials with HTTP 200 and an error record in the
+	 * CSV body, so the status code says nothing and the body has to be
+	 * inspected. Verified against the live API:
 	 *
 	 *   wrong customer number -> MESSAGE;E;200004;Ungueltige Kundennummer
 	 *   wrong user/password   -> MESSAGE;E;101004;Benutzer oder Kennwort ...
 	 *   success               -> CMXKND;... or MESSAGE;S;...
 	 *
-	 * Telling those apart needs a `responseSuccessBody` rule inspecting the
-	 * body, which earlier versions had. It was removed while investigating why
-	 * n8n's automated review reports this test as missing - `rules` is the last
-	 * remaining difference between this credential and the verified packages it
-	 * was compared against. Restore it once that is settled; bad credentials
-	 * surface on the first execution until then.
+	 * Every failure body therefore starts with `MESSAGE;E`, and character 8 -
+	 * the one right after `MESSAGE;` - separates an error (`E`) from a
+	 * successful empty result (`S`) or a data record (a digit).
+	 *
+	 * 0.1.4 removed the `rules` array below on the theory that it was the
+	 * cause of n8n's "Missing credential test" rejection, since it was the
+	 * last structural difference found against verified packages. That theory
+	 * didn't pan out (see CHANGELOG and workflow notes from 2026-09-12) and
+	 * dropping it only cost us the ability to detect bad credentials during
+	 * the test, since Collmex never fails with a non-200 status. Restored.
 	 */
 	test: ICredentialTestRequest = {
 		request: {
@@ -115,5 +118,16 @@ export class CollmexApi implements ICredentialType {
 			headers: { 'Content-Type': 'text/csv' },
 			body: '=LOGIN;{{$credentials.username}};{{$credentials.password}};1\nCUSTOMER_GET;;{{$credentials.companyId}}\n',
 		},
+		rules: [
+			{
+				type: 'responseSuccessBody',
+				properties: {
+					key: '8',
+					value: 'E',
+					message:
+						'Collmex rejected the credentials. Check the customer number, user and password, and make sure the user has the API-only flag enabled in Collmex.',
+				},
+			},
+		],
 	};
 }

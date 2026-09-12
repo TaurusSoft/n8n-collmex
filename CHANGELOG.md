@@ -5,6 +5,34 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5]
+
+Restores the `responseSuccessBody` rule removed in 0.1.4. Three releases (0.1.2
+through 0.1.4) each changed the credential test to chase the "Missing
+credential test" rejection from n8n's Creator Portal, and none of them made it
+go away.
+
+Two reports on the n8n community forum describe the same symptom on unrelated
+packages: the Creator Portal rejects with a generic test/verification failure
+while `@n8n/scan-community-package` passes clean, and the root cause turned out
+to be on n8n's side both times - a stale tag in the verification tool's release
+pipeline, and the portal validating an npm version that had already been
+unpublished. See:
+- https://community.n8n.io/t/creator-portal-reports-tests-failed-but-scan-community-package-passes-on-the-published-package/304437
+- https://community.n8n.io/t/verification-pre-check-fails-with-generic-some-tests-have-failed-but-scan-community-package-passes/304095
+
+Nothing here points at `rules` (or anything else in this credential) as the
+actual cause, so removing it in 0.1.4 traded away real functionality - the
+ability to detect bad Collmex credentials during the test - for no measurable
+benefit. Restoring it and instead raising the rejection with the n8n team
+directly, referencing the two threads above.
+
+### Added
+
+- Restored the `responseSuccessBody` rule on the credential test, so wrong
+  Collmex credentials are reported at test time again instead of only
+  surfacing on first execution.
+
 ## [0.1.4]
 
 Third attempt at the "Missing credential test" rejection, isolating the last

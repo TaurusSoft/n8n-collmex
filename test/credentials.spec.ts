@@ -23,13 +23,16 @@ describe('credential definition', () => {
 		expect(credential.test.request.body).toContain('{{$credentials.password}}');
 	});
 
-	it('carries no rules while the review rejection is unresolved', () => {
-		// A responseSuccessBody rule is what would make this test able to spot
-		// bad credentials, since Collmex answers them with HTTP 200. It was
-		// removed to isolate the last remaining difference from the packages
-		// that pass n8n's automated review. This guards the intent: if rules
-		// come back, that has to be a deliberate decision.
-		expect(credential.test.rules).toBeUndefined();
+	it('flags a rejected login via responseSuccessBody', () => {
+		// Collmex answers bad credentials with HTTP 200 and an error record in
+		// the body (`MESSAGE;E;...`), so only a responseSuccessBody rule can
+		// tell the test apart from a real success. Removing this in 0.1.4 to
+		// chase the "Missing credential test" rejection didn't fix it (see
+		// CHANGELOG) and only cost us the ability to detect bad credentials.
+		const rule = credential.test.rules?.[0];
+
+		expect(rule?.type).toBe('responseSuccessBody');
+		expect(rule?.properties).toMatchObject({ key: '8', value: 'E' });
 	});
 
 	it('marks the password as a password field', () => {
