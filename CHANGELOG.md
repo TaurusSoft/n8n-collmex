@@ -5,6 +5,29 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1]
+
+Makes the package pass `@n8n/scan-community-package`, which is a prerequisite
+for n8n Cloud verification. The scanner runs its own ESLint pass and ignores
+`eslint-disable` comments, so the two rules 0.1.0 suppressed had to be
+satisfied for real.
+
+### Changed
+
+- Authentication moved into the credential's `authenticate` function. It now
+  prepends the `LOGIN` record and fills in the customer specific endpoint, so
+  the node no longer reads credentials itself and uses
+  `httpRequestWithAuthentication`.
+- The credential test is declarative again. The custom `credentialTest` had to
+  go because `ICredentialTestFunctions` only exposes the deprecated `request`
+  helper. Since Collmex reports bad credentials with HTTP 200, the test relies
+  on a `responseSuccessBody` rule that inspects the response body instead of
+  the status code.
+
+### Fixed
+
+- An empty record list produced a stray blank line in the request payload.
+
 ## [0.1.0]
 
 First release.

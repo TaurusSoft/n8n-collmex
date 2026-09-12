@@ -91,6 +91,10 @@ Most queries support **Only Changed** together with **System Name**. Collmex sto
 
 ## Version history
 
+### 0.1.1
+
+Internal rework of authentication and the credential test so the package passes n8n's community package scanner. No change to resources, operations or output.
+
 ### 0.1.0
 
 First release. Read-only access to customers, vendors, quotations, sales orders, invoices and deliveries.

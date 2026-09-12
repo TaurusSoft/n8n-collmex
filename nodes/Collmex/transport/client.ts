@@ -1,17 +1,11 @@
 import type { IExecuteFunctions, JsonObject } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
 
+import { COLLMEX_BASE_URL } from './auth';
 import { formatCsvRow, parseCsv } from './csv';
 
-export const COLLMEX_BASE_URL = 'https://www.collmex.de';
-
-export interface CollmexCredentials {
-	customerId: string;
-	username: string;
-	password: string;
-	companyId: number;
-	charset: 'utf8' | 'latin1';
-}
+export { COLLMEX_BASE_URL, buildUrl } from './auth';
+export type { CollmexCredentials } from './auth';
 
 /**
  * A `MESSAGE` record from a Collmex response.
@@ -32,30 +26,13 @@ export const MESSAGE_RECORD = 'MESSAGE';
 const PROTOCOL_RECORDS = [MESSAGE_RECORD, 'NEW_OBJECT_ID'];
 
 /**
- * Builds the request body: the mandatory `LOGIN` record followed by the
- * query records.
+ * Serialises the query records; the LOGIN line is added by `authenticate`.
  *
- * Field 4 of `LOGIN` selects the character set of the *upload*
- * (empty/0 = ISO-8859-1, 1 = UTF-8).
+ * Each record gets its own terminator rather than joining on one, so an
+ * empty list yields an empty payload instead of a stray blank line.
  */
-export function buildRequestBody(
-	credentials: CollmexCredentials,
-	records: string[][],
-): Buffer {
-	const login = formatCsvRow([
-		'LOGIN',
-		credentials.username,
-		credentials.password,
-		credentials.charset === 'utf8' ? '1' : '0',
-	]);
-
-	const body = [login, ...records.map(formatCsvRow)].join('\n') + '\n';
-
-	return Buffer.from(body, credentials.charset);
-}
-
-export function buildUrl(customerId: string): string {
-	return `${COLLMEX_BASE_URL}/c.cmx?${customerId},0,data_exchange`;
+export function buildRecordPayload(records: string[][]): string {
+	return records.map((record) => `${formatCsvRow(record)}\n`).join('');
 }
 
 /**
@@ -127,27 +104,21 @@ export function toApiError(
  * Sends records to the Collmex data exchange endpoint and returns the parsed
  * response rows.
  *
- * The credentials travel inside the request body, which is why this node is
- * programmatic: n8n's declarative authentication can only put credentials
- * into headers, query strings or basic auth.
+ * Authentication is handled entirely by the credential's `authenticate`
+ * function, which prepends the LOGIN record and fills in the real URL - the
+ * customer number is part of it. That keeps credential handling out of the
+ * node, so the placeholder URL below is expected to be replaced.
  */
 export async function collmexRequest(
 	this: IExecuteFunctions,
 	records: string[][],
 	itemIndex: number,
 ): Promise<string[][]> {
-	const credentials = (await this.getCredentials('collmexApi')) as unknown as CollmexCredentials;
-
-	// `httpRequestWithAuthentication` applies the credential's `authenticate`
-	// block, which can only place credentials in headers, the query string or
-	// basic auth. Collmex needs them as the first CSV record of the request
-	// body, so the LOGIN record is built here and the plain helper is used.
-	// eslint-disable-next-line @n8n/community-nodes/no-http-request-with-manual-auth
-	const response = await this.helpers.httpRequest({
+	const response = await this.helpers.httpRequestWithAuthentication.call(this, 'collmexApi', {
 		method: 'POST',
-		url: buildUrl(credentials.customerId),
+		url: COLLMEX_BASE_URL,
 		headers: { 'Content-Type': 'text/csv' },
-		body: buildRequestBody(credentials, records),
+		body: buildRecordPayload(records),
 		encoding: 'arraybuffer',
 		returnFullResponse: true,
 	});

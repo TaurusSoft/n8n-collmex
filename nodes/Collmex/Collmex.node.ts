@@ -1,9 +1,6 @@
 import type {
-	ICredentialTestFunctions,
-	ICredentialsDecrypted,
 	IDataObject,
 	IExecuteFunctions,
-	INodeCredentialTestResult,
 	INodeExecutionData,
 	INodeType,
 	INodeTypeDescription,
@@ -12,17 +9,7 @@ import { NodeApiError, NodeConnectionTypes, NodeOperationError } from 'n8n-workf
 
 import { groupDocuments, mapRecord, recordLayouts } from './records';
 import { resourceDescriptions, resourceHandlers } from './resources';
-import type { CollmexCredentials } from './transport/client';
-import {
-	buildRequestBody,
-	buildUrl,
-	collmexRequest,
-	extractMessages,
-	extractRecords,
-	findError,
-	resolveResponseEncoding,
-} from './transport/client';
-import { parseCsv } from './transport/csv';
+import { collmexRequest, extractRecords } from './transport/client';
 
 export class Collmex implements INodeType {
 	description: INodeTypeDescription = {
@@ -39,7 +26,7 @@ export class Collmex implements INodeType {
 		usableAsTool: true,
 		inputs: [NodeConnectionTypes.Main],
 		outputs: [NodeConnectionTypes.Main],
-		credentials: [{ name: 'collmexApi', required: true, testedBy: 'collmexApiTest' }],
+		credentials: [{ name: 'collmexApi', required: true }],
 		properties: [
 			{
 				displayName: 'Resource',
@@ -58,56 +45,6 @@ export class Collmex implements INodeType {
 			},
 			...resourceDescriptions,
 		],
-	};
-
-	methods = {
-		credentialTest: {
-			/**
-			 * Collmex answers a bad login with HTTP 200 and a `MESSAGE;E;...`
-			 * record, so the credentials have to be checked by reading the
-			 * response rather than by looking at the status code.
-			 */
-			async collmexApiTest(
-				this: ICredentialTestFunctions,
-				credential: ICredentialsDecrypted,
-			): Promise<INodeCredentialTestResult> {
-				const credentials = credential.data as unknown as CollmexCredentials;
-
-				try {
-					// `ICredentialTestFunctions` only exposes the deprecated
-					// `request` helper - `httpRequest` is not available on this
-					// context, so there is nothing to migrate to here.
-					// eslint-disable-next-line @n8n/community-nodes/no-deprecated-workflow-functions
-					const response = await this.helpers.request({
-						method: 'POST',
-						uri: buildUrl(credentials.customerId),
-						headers: { 'Content-Type': 'text/csv' },
-						body: buildRequestBody(credentials, [
-							['CUSTOMER_GET', '', String(credentials.companyId ?? 1)],
-						]),
-						encoding: null,
-						resolveWithFullResponse: true,
-					});
-
-					const contentType = (response.headers as Record<string, string | undefined>)?.[
-						'content-type'
-					];
-					const text = Buffer.from(response.body as Buffer).toString(
-						resolveResponseEncoding(contentType),
-					);
-
-					const error = findError(extractMessages(parseCsv(text)));
-
-					if (error !== undefined) {
-						return { status: 'Error', message: error.text };
-					}
-
-					return { status: 'OK', message: 'Connection successful' };
-				} catch (error) {
-					return { status: 'Error', message: (error as Error).message };
-				}
-			},
-		},
 	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {

@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import type { CollmexCredentials } from '../nodes/Collmex/transport/client';
+import type { CollmexCredentials } from '../nodes/Collmex/transport/auth';
+import { applyCollmexAuth, buildUrl } from '../nodes/Collmex/transport/auth';
 import {
-	buildRequestBody,
-	buildUrl,
+	buildRecordPayload,
 	extractMessages,
 	extractRecords,
 	findError,
@@ -20,30 +20,57 @@ const credentials: CollmexCredentials = {
 	charset: 'utf8',
 };
 
+/** Runs the credential's authenticate step over a bare request. */
+function authenticate(
+	overrides: Partial<CollmexCredentials>,
+	records: string[][],
+): { url: string; body: Buffer } {
+	const result = applyCollmexAuth({ ...credentials, ...overrides }, {
+		url: 'https://www.collmex.de',
+		method: 'POST',
+		body: buildRecordPayload(records),
+	});
+
+	return { url: result.url, body: result.body as Buffer };
+}
+
 describe('buildUrl', () => {
 	it('builds the data exchange endpoint', () => {
 		expect(buildUrl('123456')).toBe('https://www.collmex.de/c.cmx?123456,0,data_exchange');
 	});
 });
 
-describe('buildRequestBody', () => {
-	it('puts the LOGIN record first', () => {
-		const body = buildRequestBody(credentials, [['CUSTOMER_GET', '', '1']]).toString('utf8');
+describe('buildRecordPayload', () => {
+	it('serialises records without a LOGIN line', () => {
+		// The LOGIN record is added by the credential, not by the node.
+		expect(buildRecordPayload([['CUSTOMER_GET', '', '1']])).toBe('CUSTOMER_GET;;1\n');
+	});
+});
 
-		expect(body).toBe('LOGIN;apiuser;secret;1\nCUSTOMER_GET;;1\n');
+describe('applyCollmexAuth', () => {
+	it('fills in the customer specific endpoint', () => {
+		expect(authenticate({}, []).url).toBe(
+			'https://www.collmex.de/c.cmx?123456,0,data_exchange',
+		);
+	});
+
+	it('puts the LOGIN record first', () => {
+		const { body } = authenticate({}, [['CUSTOMER_GET', '', '1']]);
+
+		expect(body.toString('utf8')).toBe('LOGIN;apiuser;secret;1\nCUSTOMER_GET;;1\n');
 	});
 
 	it('signals ISO-8859-1 with a 0 in the charset field', () => {
-		const body = buildRequestBody({ ...credentials, charset: 'latin1' }, []).toString('latin1');
+		const { body } = authenticate({ charset: 'latin1' }, []);
 
-		expect(body).toBe('LOGIN;apiuser;secret;0\n');
+		expect(body.toString('latin1')).toBe('LOGIN;apiuser;secret;0\n');
 	});
 
 	it('encodes the body in the requested charset', () => {
 		const records = [['CUSTOMER_GET', 'Müller']];
 
-		const utf8 = buildRequestBody(credentials, records);
-		const latin1 = buildRequestBody({ ...credentials, charset: 'latin1' }, records);
+		const utf8 = authenticate({}, records).body;
+		const latin1 = authenticate({ charset: 'latin1' }, records).body;
 
 		// 'ü' is two bytes in UTF-8 and one in ISO-8859-1.
 		expect(utf8.length).toBe(latin1.length + 1);
@@ -51,10 +78,7 @@ describe('buildRequestBody', () => {
 	});
 
 	it('escapes a password containing the delimiter', () => {
-		const body = buildRequestBody(
-			{ ...credentials, password: 'pa;ss"word' },
-			[],
-		).toString('utf8');
+		const body = authenticate({ password: 'pa;ss"word' }, []).body.toString('utf8');
 
 		expect(body).toBe('LOGIN;apiuser;"pa;ss""word";1\n');
 		// And it survives a round trip, so the password reaches Collmex intact.

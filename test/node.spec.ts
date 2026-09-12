@@ -1,7 +1,14 @@
-import type { IDataObject, IExecuteFunctions, INodeExecutionData } from 'n8n-workflow';
+import type {
+	IDataObject,
+	IExecuteFunctions,
+	IHttpRequestOptions,
+	INodeExecutionData,
+} from 'n8n-workflow';
 import { describe, expect, it } from 'vitest';
 
 import { Collmex } from '../nodes/Collmex/Collmex.node';
+import type { CollmexCredentials } from '../nodes/Collmex/transport/auth';
+import { applyCollmexAuth } from '../nodes/Collmex/transport/auth';
 import { parseCsv } from '../nodes/Collmex/transport/csv';
 import {
 	buildInvoiceResponse,
@@ -29,17 +36,19 @@ function harness(
 ): Harness {
 	let body = '';
 
+	const credentials: CollmexCredentials = {
+		customerId: '123456',
+		username: 'apiuser',
+		password: 'secret',
+		companyId: 1,
+		charset: 'utf8',
+	};
+
 	const context = {
 		getInputData: () => [{ json: {} }],
 		getNode: () => ({ name: 'Collmex', type: 'collmex', typeVersion: 1 }),
 		continueOnFail: () => options.continueOnFail ?? false,
-		getCredentials: async () => ({
-			customerId: '123456',
-			username: 'apiuser',
-			password: 'secret',
-			companyId: 1,
-			charset: 'utf8',
-		}),
+		getCredentials: async () => credentials,
 		getNodeParameter(name: string, _index: number, fallback?: unknown) {
 			if (name in parameters) return parameters[name];
 			if (fallback !== undefined) return fallback;
@@ -47,8 +56,15 @@ function harness(
 			throw new Error(`test harness: unexpected parameter "${name}"`);
 		},
 		helpers: {
-			async httpRequest(request: { body: Buffer }) {
-				body = request.body.toString('utf8');
+			async httpRequestWithAuthentication(
+				_credentialsType: string,
+				request: IHttpRequestOptions,
+			) {
+				// Mirrors what n8n does before sending: run the credential's
+				// authenticate step, so the assertions see the real wire format
+				// including the LOGIN record.
+				const authenticated = applyCollmexAuth(credentials, request);
+				body = (authenticated.body as Buffer).toString('utf8');
 
 				// Collmex answers in ISO-8859-1 and declares it in the header.
 				const buffer = Buffer.from(response, 'latin1');
