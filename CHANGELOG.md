@@ -5,7 +5,11 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.6]
+
+No functional change over 0.1.5. Released only because the Creator Portal
+cannot re-run its pre-check without a fresh submission, and this is the first
+version whose commit is also on `main`.
 
 ### Fixed
 
