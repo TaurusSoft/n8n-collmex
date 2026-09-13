@@ -20,6 +20,20 @@ needed. This reverts them to the 0.1.1 shape.
   encoding the body actually used.
 - `authenticate` no longer special-cases a body that already starts with
   `LOGIN;`, and no longer clears `baseURL`; nothing sets one any more.
+- Output no longer repeats the Collmex record type on every item. It identifies
+  the CSV row rather than describing the record, and the caller already knows
+  which resource it queried.
+
+### Removed
+
+- `hasUnknownRecords`, which was exported but never called.
+
+### Added
+
+- **Product** resource with `Get` and `Get Many`, querying `PRODUCT_GET` and
+  mapping the 67 fields of `CMXPRD`. Filters: product group, price group, web
+  presence, products with a price only, free text search, plus the usual
+  company override and `Only Changed` with `System Name`.
 
 ### Removed
 

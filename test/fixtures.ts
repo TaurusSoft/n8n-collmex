@@ -94,3 +94,23 @@ export function buildInvoiceResponse(): string {
 		'',
 	].join('\n');
 }
+
+/**
+ * A product query, captured live on 2026-09-13.
+ *
+ * What makes this one worth keeping: record 2's description carries a
+ * semicolon and its comment carries line breaks, both inside quoted fields,
+ * and the numbers use the German decimal comma. Collmex separates records
+ * with CRLF but uses a bare LF inside a field, so the two are kept apart
+ * here instead of being joined on one terminator.
+ *
+ * Two edits against the wire, and no others: the company name is anonymised,
+ * and the 1023 character comment is cut to two paragraphs, marked [gekuerzt].
+ */
+export const productGetResponse = [
+	"CMXPRD;1;Kabel USB 2.0 grau;Cable USB 2.0 gray;PCE;1 Elektro;1 Max Mustermann;0 19%;0,000;;1;0 Ware;0;0 Standard;;4044951015290;Sharkoon;0 ;0;0;;0 Einkauf;;;;Eigenschaften: Kabellänge 0,5 m, Version USB 2.0, 1 USB-Anschluss, 2 USB, männlich/männlich, Farbe: Grau.;0 Automatisch;0,00;1;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;0;;;0;;;0;",
+	"CMXPRD;2;\"Anker 240W USB C auf USB C Kabel PD 3.1; 1,8m\";Anker 240W USB C USB C cable PD 3.1 [1,8m];PCE;0 ;1 Max Mustermann;0 19%;25,900;GRM;1;0 Ware;0;0 Standard;14,99;;Anker;0 ;2;5;;0 Einkauf;;;;\"Modellnummer: A8060 Anker USB C auf USB C Kabel (1,8m, 240W, geflochten) Schnellladen in robustem, schmutzabweisendem Design\n\nRasantes Laden mit 240W Das Kabel ist mit PD 3.1 für zuverlässiges Schnellladen ausgestattet. [gekürzt]\";0 Automatisch;0,00;1;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;0;;;0;;KAB1058;0;",
+	"MESSAGE;S;209033;PRODUCT_GET hat 2 Datensätze zurückgegeben",
+	"MESSAGE;S;204020;Datenübertragung erfolgreich. Es wurden 1 Datensätze verarbeitet.",
+	"",
+].join("\r\n");

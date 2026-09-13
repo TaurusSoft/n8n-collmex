@@ -15,6 +15,7 @@ import {
 	customerGetResponse,
 	emptyResultResponse,
 	loginErrorResponse,
+	productGetResponse,
 	vendorGetResponse,
 } from './fixtures';
 
@@ -198,6 +199,32 @@ describe('vendor', () => {
 		expect(items).toHaveLength(1);
 		expect(items[0].json.vendorId).toBe(9999);
 		expect(items[0].json.field42).toBe('01.01.1970');
+	});
+});
+
+describe('product', () => {
+	it('puts the company on field 2 and the product on field 3', async () => {
+		// PRODUCT_GET is laid out differently from every other query, where
+		// field 2 is the record's own id.
+		const { sent } = await run(
+			{ resource: 'product', operation: 'get', productId: 'ART-1', options: {} },
+			productGetResponse,
+		);
+
+		expect(sent[0][0]).toBe('PRODUCT_GET');
+		expect(sent[0][1]).toBe('1');
+		expect(sent[0][2]).toBe('ART-1');
+	});
+
+	it('maps the live response end to end', async () => {
+		const { items } = await run(
+			{ resource: 'product', operation: 'getAll', returnAll: true, options: {} },
+			productGetResponse,
+		);
+
+		expect(items).toHaveLength(2);
+		expect(items[1].json.description).toBe('Anker 240W USB C auf USB C Kabel PD 3.1; 1,8m');
+		expect(items[1].json.salesPrice).toBe(14.99);
 	});
 });
 

@@ -32,6 +32,7 @@ This node is **read-only**. It queries Collmex but never creates or changes anyt
 | --- | --- | --- | --- |
 | Customer | Get, Get Many | `CUSTOMER_GET` | `CMXKND` |
 | Vendor | Get, Get Many | `VENDOR_GET` | `CMXLIF` |
+| Product | Get, Get Many | `PRODUCT_GET` | `CMXPRD` |
 | Quotation | Get, Get Many | `QUOTATION_GET` | `CMXQTN` |
 | Sales Order | Get, Get Many | `SALES_ORDER_GET` | `CMXORD-2` |
 | Invoice | Get, Get Many | `INVOICE_GET` | `CMXINV` |
