@@ -35,6 +35,14 @@ needed. This reverts them to the 0.1.1 shape.
   presence, products with a price only, free text search, plus the usual
   company override and `Only Changed` with `System Name`.
 
+### Fixed
+
+- `finalDiscount` on quotations, sales orders and invoices, and
+  `downPaymentPercent` on invoices, arrived as text instead of a number.
+  Collmex documents these percentages as integers but sends decimals, so a
+  discount of 1.20 percent came out as the string '1,20'. They are typed as
+  decimals now. Found by querying a live quotation.
+
 ### Removed
 
 - The **Request Character Set** credential field. It offered a choice with only

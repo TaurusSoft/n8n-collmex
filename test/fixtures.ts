@@ -114,3 +114,24 @@ export const productGetResponse = [
 	"MESSAGE;S;204020;Datenübertragung erfolgreich. Es wurden 1 Datensätze verarbeitet.",
 	"",
 ].join("\r\n");
+
+/**
+ * A quotation query, captured live on 2026-09-13.
+ *
+ * Three quotations across five rows: one without line items, two with two
+ * each, which is what makes this the regression case for position grouping.
+ * Quotation 3 also carries a final discount of 1,20 percent - the field the
+ * documentation types as an integer - and multi-line texts in the header.
+ *
+ * One edit against the wire: the company name is anonymised.
+ */
+export const quotationGetResponse = [
+	"CMXQTN;1;0;0;1 Max Mustermann;10000;;;;;Testfirma 1;;Bayrische Str. 12;01069;Dresden;DE;;;;;;;;;;;;0;20260913;20260913;0 30 Tage ohne Abzug;EUR;0 Standard;0 ;0,00;;;;;0;;0;0;0;0,00;;0 Neu;;0 ;0,00;0,00;;;;;;;;;;;;;;;;;;0;;;;0,000;0,00;0,000;0,00;0,00;0;0;0;0;;;;;;0,00",
+	"CMXQTN;2;10;0;1 Max Mustermann;10000;;;;;Testfirma 1;;Bayrische Str. 12;01069;Dresden;DE;;;;;;;;;;;;0;20260913;20260913;0 30 Tage ohne Abzug;EUR;0 Standard;0 ;0,00;;\"Sehr geehrte Damen und Herren,\n\nwir freuen uns, dass Sie sich für unsere Produkte interessieren.\";;;0;;0;0;0;0,00;;0 Neu;;0 ;0,00;0,00;;;;;;;;;;;;;;;;;;0;2;\"Anker 240W USB C auf USB C Kabel PD 3.1; 1,8m\";PCE;4;14,99;1;0,00;59,96;0;0;0;0;;59,96;0,00;59,96;100,00;0,00",
+	"CMXQTN;2;20;0;1 Max Mustermann;10000;;;;;Testfirma 1;;Bayrische Str. 12;01069;Dresden;DE;;;;;;;;;;;;0;20260913;20260913;0 30 Tage ohne Abzug;EUR;0 Standard;0 ;0,00;;\"Sehr geehrte Damen und Herren,\n\nwir freuen uns, dass Sie sich für unsere Produkte interessieren.\";;;0;;0;0;0;0,00;;0 Neu;;0 ;0,00;0,00;;;;;;;;;;;;;;;;;;0;1;Kabel USB 2.0 grau;PCE;13;0,00;1;0,00;0,00;0;0;0;0;;0,00;0,00;0,00;0,00;0,00",
+	"CMXQTN;3;10;0;1 Max Mustermann;10000;;;;;Testfirma 1;;Bayrische Str. 12;01069;Dresden;DE;;;;;;;;;;;;0;20260913;20260913;0 30 Tage ohne Abzug;EUR;0 Standard;0 ;1,20;Erstkauf;\"Sehr geehrte Damen und Herren,\n\nvielen Dank für Ihr Interesse an unseren Produkten\";\"Wir freuen uns auf Ihren Auftrag\n\nViele Grüße\n\nHans\";;0;;0;0;0;0,00;;0 Neu;;0 ;2,00;0,00;20260930;CFR;;;;;;;;;;;;;;;;0;1;Kabel USB 2.0 grau;PCE;13;0,00;1;0,00;0,00;0;0;0;0;;0,00;0,00;0,00;0,00;0,00",
+	"CMXQTN;3;20;0;1 Max Mustermann;10000;;;;;Testfirma 1;;Bayrische Str. 12;01069;Dresden;DE;;;;;;;;;;;;0;20260913;20260913;0 30 Tage ohne Abzug;EUR;0 Standard;0 ;1,20;Erstkauf;\"Sehr geehrte Damen und Herren,\n\nvielen Dank für Ihr Interesse an unseren Produkten\";\"Wir freuen uns auf Ihren Auftrag\n\nViele Grüße\n\nHans\";;0;;0;0;0;0,00;;0 Neu;;0 ;2,00;0,00;20260930;CFR;;;;;;;;;;;;;;;;0;2;\"Anker 240W USB C auf USB C Kabel PD 3.1; 1,8m\";PCE;24;14,99;1;0,00;359,76;0;0;0;0;;355,44;0,00;355,44;100,00;0,00",
+	"MESSAGE;S;218007;QUOTATION_GET hat 3 Datensätze zurückgegeben",
+	"MESSAGE;S;204020;Datenübertragung erfolgreich. Es wurden 1 Datensätze verarbeitet.",
+	"",
+].join("\r\n");

@@ -6,6 +6,7 @@ import {
 	buildInvoiceResponse,
 	customerGetResponse,
 	productGetResponse,
+	quotationGetResponse,
 	vendorGetResponse,
 } from './fixtures';
 
@@ -183,6 +184,64 @@ describe('live product response', () => {
 		expect(products[0]).not.toHaveProperty('salesPrice');
 		expect(products[0]).not.toHaveProperty('storageLocation');
 		expect(products[0]).not.toHaveProperty('weightUnit');
+	});
+});
+
+describe('live quotation response', () => {
+	const rows = parseCsv(quotationGetResponse).filter((row) => row[0] === 'CMXQTN');
+	const documents = groupDocuments(recordLayouts.CMXQTN, rows, 1);
+
+	it('returns exactly the documented 87 columns', () => {
+		for (const row of rows) {
+			expect(row).toHaveLength(87);
+		}
+	});
+
+	it('folds five rows into three quotations', () => {
+		expect(documents).toHaveLength(3);
+		expect(documents.map((d) => (d.positions as unknown[]).length)).toEqual([1, 2, 2]);
+	});
+
+	it('keeps line item data out of the header', () => {
+		// The header/position split across 87 fields is the whole point of the
+		// scope markers, and only a document with several items can show it.
+		for (const document of documents) {
+			expect(document).not.toHaveProperty('productId');
+			expect(document).not.toHaveProperty('positionNumber');
+			expect(document).toHaveProperty('quotationId');
+		}
+	});
+
+	it('reads the final discount as a number', () => {
+		// Collmex documents field 35 as an integer but sends a decimal
+		// percentage. Typed as an integer it used to arrive as the string
+		// '1,20'. The arithmetic below is the cross-check: 24 x 14.99 = 359.76,
+		// less 1.2 percent = 355.44.
+		const third = documents[2];
+		const second = (third.positions as Record<string, unknown>[])[1];
+
+		expect(third.finalDiscount).toBe(1.2);
+		expect(second.positionValue).toBe(359.76);
+		expect(second.revenue).toBe(355.44);
+	});
+
+	it('keeps a semicolon and the compact date format intact', () => {
+		const third = documents[2];
+		const second = (third.positions as Record<string, unknown>[])[1];
+
+		expect(second.productDescription).toBe('Anker 240W USB C auf USB C Kabel PD 3.1; 1,8m');
+		// Quotations date in JJJJMMTT, unlike the customer record which uses
+		// TT.MM.JJJJ. Both must normalise to ISO.
+		expect(third.quotationDate).toBe('2026-09-13');
+		expect(third.serviceDate).toBe('2026-09-30');
+	});
+
+	it('keeps multi-line header texts whole', () => {
+		const text = documents[2].closingText as string;
+
+		expect(text).toContain('Wir freuen uns auf Ihren Auftrag');
+		expect(text).toContain('Viele Gr');
+		expect(text).not.toContain(String.fromCharCode(13));
 	});
 });
 
