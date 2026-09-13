@@ -2,7 +2,15 @@ import { describe, expect, it } from 'vitest';
 
 import { groupDocuments, mapRecord, recordLayouts } from '../nodes/Collmex/records';
 import { parseCsv } from '../nodes/Collmex/transport/csv';
-import { buildInvoiceResponse, customerGetResponse, vendorGetResponse } from './fixtures';
+import {
+	customerGetResponse,
+	deliveryGetResponse,
+	invoiceGetResponse,
+	productGetResponse,
+	quotationGetResponse,
+	salesOrderGetResponse,
+	vendorGetResponse,
+} from './fixtures';
 
 describe('record layouts', () => {
 	// Straight from the Collmex import documentation. If one of these drifts,
@@ -13,6 +21,7 @@ describe('record layouts', () => {
 		['CMXQTN', 87],
 		['CMXORD-2', 99],
 		['CMXINV', 96],
+		['CMXPRD', 67],
 		['CMXDLV', 72],
 	])('%s has %i documented fields', (type, count) => {
 		expect(recordLayouts[type]).toHaveLength(count);
@@ -50,7 +59,6 @@ describe('mapRecord', () => {
 		expect(row).toHaveLength(54);
 
 		expect(mapRecord(recordLayouts.CMXKND, row as string[])).toEqual({
-			recordType: 'CMXKND',
 			customerId: 10000,
 			companyId: 1,
 			companyIdLabel: 'Max Mustermann',
@@ -85,6 +93,12 @@ describe('mapRecord', () => {
 		});
 	});
 
+	it('leaves the record type out of the output', () => {
+		// It identifies the row, it is not data about the record, and the caller
+		// already knows what it asked for.
+		expect(mapRecord(recordLayouts.CMXKND, customers[0])).not.toHaveProperty('recordType');
+	});
+
 	it('omits fields Collmex left empty', () => {
 		const mapped = mapRecord(recordLayouts.CMXKND, customers[0]);
 
@@ -106,62 +120,285 @@ describe('mapRecord', () => {
 	});
 
 	it('filters by scope', () => {
-		const row = parseCsv(buildInvoiceResponse()).find((candidate) => candidate[0] === 'CMXINV');
+		const row = parseCsv(invoiceGetResponse).find((candidate) => candidate[0] === 'CMXINV');
 
 		const headerOnly = mapRecord(recordLayouts.CMXINV, row as string[], 'header');
 		const positionOnly = mapRecord(recordLayouts.CMXINV, row as string[], 'position');
 
-		expect(headerOnly.invoiceId).toBe(20001);
+		expect(headerOnly.invoiceId).toBe(1);
 		expect(headerOnly).not.toHaveProperty('productId');
 
-		expect(positionOnly.productId).toBe('ART-1');
+		expect(positionOnly.productId).toBe('1');
 		expect(positionOnly).not.toHaveProperty('invoiceId');
+	});
+});
+
+describe('live product response', () => {
+	const rows = parseCsv(productGetResponse).filter((row) => row[0] === 'CMXPRD');
+	const products = rows.map((row) => mapRecord(recordLayouts.CMXPRD, row));
+
+	it('returns exactly the documented 67 columns', () => {
+		for (const row of rows) {
+			expect(row).toHaveLength(67);
+		}
+	});
+
+	it('keeps a semicolon inside a quoted description', () => {
+		expect(products[1].description).toBe('Anker 240W USB C auf USB C Kabel PD 3.1; 1,8m');
+	});
+
+	it('keeps a quoted line break from splitting the record', () => {
+		// Collmex ends records with CRLF but writes a bare LF inside a field. Had
+		// the parser broken the row there, the comment would stop after the first
+		// paragraph and a spurious extra row would show up.
+		expect(rows).toHaveLength(2);
+
+		const comment = products[1].comment as string;
+
+		expect(comment).toContain('Modellnummer: A8060');
+		expect(comment).toContain('Rasantes Laden mit 240W');
+		// The CR of the record terminator must not leak into the value.
+		expect(comment).not.toContain(String.fromCharCode(13));
+	});
+
+	it('reads the German decimal comma', () => {
+		expect(products[1].weight).toBe(25.9);
+		expect(products[1].salesPrice).toBe(14.99);
+		expect(products[0].weight).toBe(0);
+	});
+
+	it('splits a coded value but leaves a bare number alone', () => {
+		expect(products[0].productGroup).toBe(1);
+		expect(products[0].productGroupLabel).toBe('Elektro');
+
+		// Record 2 carries '0 ' - a number with a trailing space and no label.
+		expect(products[1].productGroup).toBe(0);
+		expect(products[1]).not.toHaveProperty('productGroupLabel');
+	});
+
+	it('lands the tail of the layout on the right fields', () => {
+		// Field 65. Any undocumented column before it would shift this.
+		expect(products[1].storageLocation).toBe('KAB1058');
+		expect(products[1].noStockManagement).toBe(0);
+	});
+
+	it('omits what Collmex left empty', () => {
+		expect(products[0]).not.toHaveProperty('salesPrice');
+		expect(products[0]).not.toHaveProperty('storageLocation');
+		expect(products[0]).not.toHaveProperty('weightUnit');
+	});
+});
+
+describe('live quotation response', () => {
+	const rows = parseCsv(quotationGetResponse).filter((row) => row[0] === 'CMXQTN');
+	const documents = groupDocuments(recordLayouts.CMXQTN, rows, 1);
+
+	it('returns exactly the documented 87 columns', () => {
+		for (const row of rows) {
+			expect(row).toHaveLength(87);
+		}
+	});
+
+	it('folds five rows into three quotations', () => {
+		expect(documents).toHaveLength(3);
+		expect(documents.map((d) => (d.positions as unknown[]).length)).toEqual([1, 2, 2]);
+	});
+
+	it('keeps line item data out of the header', () => {
+		// The header/position split across 87 fields is the whole point of the
+		// scope markers, and only a document with several items can show it.
+		for (const document of documents) {
+			expect(document).not.toHaveProperty('productId');
+			expect(document).not.toHaveProperty('positionNumber');
+			expect(document).toHaveProperty('quotationId');
+		}
+	});
+
+	it('reads the final discount as a number', () => {
+		// Collmex documents field 35 as an integer but sends a decimal
+		// percentage. Typed as an integer it used to arrive as the string
+		// '1,20'. The arithmetic below is the cross-check: 24 x 14.99 = 359.76,
+		// less 1.2 percent = 355.44.
+		const third = documents[2];
+		const second = (third.positions as Record<string, unknown>[])[1];
+
+		expect(third.finalDiscount).toBe(1.2);
+		expect(second.positionValue).toBe(359.76);
+		expect(second.revenue).toBe(355.44);
+	});
+
+	it('keeps a semicolon and the compact date format intact', () => {
+		const third = documents[2];
+		const second = (third.positions as Record<string, unknown>[])[1];
+
+		expect(second.productDescription).toBe('Anker 240W USB C auf USB C Kabel PD 3.1; 1,8m');
+		// Quotations date in JJJJMMTT, unlike the customer record which uses
+		// TT.MM.JJJJ. Both must normalise to ISO.
+		expect(third.quotationDate).toBe('2026-09-13');
+		expect(third.serviceDate).toBe('2026-09-30');
+	});
+
+	it('keeps multi-line header texts whole', () => {
+		const text = documents[2].closingText as string;
+
+		expect(text).toContain('Wir freuen uns auf Ihren Auftrag');
+		expect(text).toContain('Viele Gr');
+		expect(text).not.toContain(String.fromCharCode(13));
+	});
+});
+
+describe('live sales order response', () => {
+	const layout = recordLayouts['CMXORD-2'];
+	const rows = parseCsv(salesOrderGetResponse).filter((row) => row[0] === 'CMXORD-2');
+	const order = groupDocuments(layout, rows, 1)[0];
+	const positions = order.positions as Record<string, unknown>[];
+
+	it('returns exactly the documented 99 columns', () => {
+		for (const row of rows) {
+			expect(row).toHaveLength(99);
+		}
+	});
+
+	it('folds two rows into one order with two line items', () => {
+		expect(order.orderId).toBe(1);
+		expect(positions).toHaveLength(2);
+	});
+
+	it('keeps the header fields buried in the line item block on the header', () => {
+		// Fields 86, 87 and 93 to 98 sit among the line item fields, and the
+		// documentation calls them order header data. Two of them prove it:
+		// the gross total and the originating quotation are identical on every
+		// row, which line item data would not be.
+		expect(order.totalAmountGross).toBe(425.35);
+		expect(order.quotationId).toBe(3);
+		expect(order.finallyDelivered).toBe(0);
+		expect(order.finallyInvoiced).toBe(0);
+		expect(order.deliveryBlock).toBe(0);
+
+		for (const position of positions) {
+			expect(position).not.toHaveProperty('totalAmountGross');
+			expect(position).not.toHaveProperty('quotationId');
+		}
+	});
+
+	it('keeps field 99 with the line items', () => {
+		// deliveryRelevant is documented per line item, unlike its neighbours.
+		expect(positions.map((p) => p.deliveryRelevant)).toEqual([1, 1]);
+		expect(order).not.toHaveProperty('deliveryRelevant');
+	});
+
+	it('adds up', () => {
+		// 24 x 14.99 = 359.76, less 1.2 percent = 355.44, plus 2.00 shipping,
+		// plus 19 percent VAT = 425.35. Every number on that path is parsed.
+		expect(positions[1].quantity).toBe(24);
+		expect(positions[1].unitPrice).toBe(14.99);
+		expect(positions[1].positionValue).toBe(359.76);
+		expect(order.finalDiscount).toBe(1.2);
+		expect(order.shippingCosts).toBe(2);
+		expect(order.totalAmountGross).toBe(425.35);
+	});
+
+	it('splits a coded value whose label contains a comma', () => {
+		expect(order.paymentCondition).toBe(2);
+		expect(order.paymentConditionLabel).toBe('14 Tage 3%, 30 Tage o.A.');
+	});
+});
+
+describe('live delivery response', () => {
+	const rows = parseCsv(deliveryGetResponse).filter((row) => row[0] === 'CMXDLV');
+	const delivery = groupDocuments(recordLayouts.CMXDLV, rows, 1)[0];
+	const positions = delivery.positions as Record<string, unknown>[];
+
+	it('returns exactly the documented 72 columns', () => {
+		for (const row of rows) {
+			expect(row).toHaveLength(72);
+		}
+	});
+
+	it('links back to the order it was created from', () => {
+		expect(delivery.deliveryId).toBe(1);
+		expect(delivery.orderId).toBe(1);
+		expect(positions.map((p) => p.salesOrderPosition)).toEqual([10, 20]);
+	});
+
+	it('keeps the delivery weight on the header', () => {
+		// One weight for the whole delivery, not per line item.
+		expect(delivery.weight).toBe(0.621);
+		expect(delivery.status).toBe(10);
+		expect(delivery.statusLabel).toBe('Offen');
+	});
+
+	it('carries the GTIN per line item', () => {
+		// Only the first product has one, so this also covers a field that is
+		// filled on one row and empty on the next.
+		expect(positions[0].gtin).toBe('4044951015290');
+		expect(positions[1]).not.toHaveProperty('gtin');
+	});
+});
+
+/**
+ * A field whose value changes from row to row describes a line item, not the
+ * document. Marking such a field as header data would silently drop every
+ * value but the first one's. This is the one scope mistake real data can
+ * expose, so it is checked against every captured document response.
+ */
+describe.each([
+	['CMXQTN', quotationGetResponse],
+	['CMXORD-2', salesOrderGetResponse],
+	['CMXDLV', deliveryGetResponse],
+	['CMXINV', invoiceGetResponse],
+])('%s scope markers', (type, response) => {
+	it('marks every field that varies between rows as line item data', () => {
+		const layout = recordLayouts[type];
+		const rows = parseCsv(response).filter((row) => row[0] === type);
+
+		// Rows of different documents differ in their header fields by design,
+		// so the comparison has to stay within one document.
+		const byDocument = new Map<string, string[][]>();
+		for (const row of rows) {
+			const id = row[1];
+			byDocument.set(id, [...(byDocument.get(id) ?? []), row]);
+		}
+
+		const misscoped: string[] = [];
+		for (const document of byDocument.values()) {
+			layout.forEach((spec, index) => {
+				if ((spec.scope ?? 'header') !== 'header') return;
+				const values = new Set(document.map((row) => row[index]));
+				if (values.size > 1) misscoped.push(`${index + 1} ${spec.name}`);
+			});
+		}
+		expect(misscoped).toEqual([]);
 	});
 });
 
 describe('groupDocuments', () => {
 	it('folds the line items of one invoice into a single document', () => {
-		const rows = parseCsv(buildInvoiceResponse()).filter((row) => row[0] === 'CMXINV');
+		const rows = parseCsv(invoiceGetResponse).filter((row) => row[0] === 'CMXINV');
 		const documents = groupDocuments(recordLayouts.CMXINV, rows, 1);
 
 		expect(documents).toHaveLength(1);
 
 		const invoice = documents[0];
-		expect(invoice.invoiceId).toBe(20001);
+		expect(invoice.invoiceId).toBe(1);
 		expect(invoice.customerId).toBe(10000);
-		expect(invoice.invoiceDate).toBe('2026-09-11');
-		expect(invoice.status).toBe(20);
-		expect(invoice.statusLabel).toBe('Offen');
+		expect(invoice.invoiceDate).toBe('2026-09-13');
+		expect(invoice.status).toBe(0);
+		expect(invoice.statusLabel).toBe('Neu');
 		expect(invoice.customerZip).toBe('01069');
 
 		// Line item data must not bleed into the header.
 		expect(invoice).not.toHaveProperty('productId');
 		expect(invoice).not.toHaveProperty('positionNumber');
 
-		expect(invoice.positions).toEqual([
-			{
-				positionNumber: 10,
-				positionType: 0,
-				positionTypeLabel: 'Normalposition',
-				productId: 'ART-1',
-				productDescription: 'Testprodukt A',
-				unit: 'Stk',
-				quantity: 2,
-				unitPrice: 19.99,
-				positionValue: 39.98,
-			},
-			{
-				positionNumber: 20,
-				positionType: 0,
-				positionTypeLabel: 'Normalposition',
-				productId: 'ART-2',
-				productDescription: 'Testprodukt B',
-				unit: 'Stk',
-				quantity: 1.5,
-				unitPrice: 1234.5,
-				positionValue: 1851.75,
-			},
-		]);
+		const positions = invoice.positions as Record<string, unknown>[];
+		expect(positions).toHaveLength(2);
+		expect(positions[1].productId).toBe('2');
+		expect(positions[1].productDescription).toBe('Anker 240W USB C auf USB C Kabel PD 3.1; 1,8m');
+		expect(positions[1].quantity).toBe(24);
+		expect(positions[1].unitPrice).toBe(14.99);
+		expect(positions[1].positionValue).toBe(359.76);
+		expect(positions[1].revenue).toBe(355.44);
 	});
 
 	it('starts a new document when the document number changes', () => {

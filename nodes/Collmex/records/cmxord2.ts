@@ -24,7 +24,10 @@ export const cmxord2: FieldSpec[] = [
 	header('currency', 'C'),
 	header('priceGroup', 'I'),
 	header('discountGroup', 'I'),
-	header('finalDiscount', 'I'),
+	// Documented as an integer, but Collmex sends a decimal percentage
+	// ('1,20' was observed live). Typed as a decimal so it arrives as a
+	// number rather than falling back to text.
+	header('finalDiscount', 'N'),
 	header('discountReason', 'C'),
 	header('confirmationText', 'C'),
 	header('closingText', 'C'),

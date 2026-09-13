@@ -22,9 +22,6 @@ export interface CollmexMessage {
 
 export const MESSAGE_RECORD = 'MESSAGE';
 
-/** Records Collmex adds to a response that are protocol, not payload. */
-const PROTOCOL_RECORDS = [MESSAGE_RECORD, 'NEW_OBJECT_ID'];
-
 /**
  * Serialises the query records; the LOGIN line is added by `authenticate`.
  *
@@ -38,9 +35,9 @@ export function buildRecordPayload(records: string[][]): string {
 /**
  * Picks the encoding for the *response*.
  *
- * This deliberately ignores the credential setting: Collmex answers in
- * ISO-8859-1 even when the upload announced UTF-8, but it always declares
- * what it sent in the `Content-Type` header.
+ * Requests always go out as UTF-8, but that says nothing about what comes
+ * back: Collmex has answered in ISO-8859-1 throughout, and always declares
+ * what it sent in the `Content-Type` header. So the header decides.
  */
 export function resolveResponseEncoding(contentType?: string): BufferEncoding {
 	const charset = /charset=([\w-]+)/i.exec(contentType ?? '')?.[1]?.toLowerCase();
@@ -64,15 +61,6 @@ export function extractMessages(rows: string[][]): CollmexMessage[] {
 /** Strips protocol records, leaving only the data rows. */
 export function extractRecords(rows: string[][], recordType: string): string[][] {
 	return rows.filter((row) => row[0] === recordType);
-}
-
-export function hasUnknownRecords(rows: string[][], recordType: string): boolean {
-	return rows.some(
-		(row) =>
-			row[0] !== '' &&
-			row[0] !== recordType &&
-			!PROTOCOL_RECORDS.includes(row[0]),
-	);
 }
 
 /**

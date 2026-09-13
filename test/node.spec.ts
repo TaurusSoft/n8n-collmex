@@ -11,10 +11,11 @@ import type { CollmexCredentials } from '../nodes/Collmex/transport/auth';
 import { applyCollmexAuth } from '../nodes/Collmex/transport/auth';
 import { parseCsv } from '../nodes/Collmex/transport/csv';
 import {
-	buildInvoiceResponse,
 	customerGetResponse,
 	emptyResultResponse,
+	invoiceGetResponse,
 	loginErrorResponse,
+	productGetResponse,
 	vendorGetResponse,
 } from './fixtures';
 
@@ -201,6 +202,32 @@ describe('vendor', () => {
 	});
 });
 
+describe('product', () => {
+	it('puts the company on field 2 and the product on field 3', async () => {
+		// PRODUCT_GET is laid out differently from every other query, where
+		// field 2 is the record's own id.
+		const { sent } = await run(
+			{ resource: 'product', operation: 'get', productId: 'ART-1', options: {} },
+			productGetResponse,
+		);
+
+		expect(sent[0][0]).toBe('PRODUCT_GET');
+		expect(sent[0][1]).toBe('1');
+		expect(sent[0][2]).toBe('ART-1');
+	});
+
+	it('maps the live response end to end', async () => {
+		const { items } = await run(
+			{ resource: 'product', operation: 'getAll', returnAll: true, options: {} },
+			productGetResponse,
+		);
+
+		expect(items).toHaveLength(2);
+		expect(items[1].json.description).toBe('Anker 240W USB C auf USB C Kabel PD 3.1; 1,8m');
+		expect(items[1].json.salesPrice).toBe(14.99);
+	});
+});
+
 describe('documents', () => {
 	it('groups line items into one item by default', async () => {
 		const { items } = await run(
@@ -211,11 +238,11 @@ describe('documents', () => {
 				groupPositions: true,
 				options: {},
 			},
-			buildInvoiceResponse(),
+			invoiceGetResponse,
 		);
 
 		expect(items).toHaveLength(1);
-		expect(items[0].json.invoiceId).toBe(20001);
+		expect(items[0].json.invoiceId).toBe(1);
 		expect(items[0].json.positions).toHaveLength(2);
 	});
 
@@ -228,7 +255,7 @@ describe('documents', () => {
 				groupPositions: false,
 				options: {},
 			},
-			buildInvoiceResponse(),
+			invoiceGetResponse,
 		);
 
 		expect(items).toHaveLength(2);
