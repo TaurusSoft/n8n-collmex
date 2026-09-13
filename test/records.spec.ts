@@ -3,8 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { groupDocuments, mapRecord, recordLayouts } from '../nodes/Collmex/records';
 import { parseCsv } from '../nodes/Collmex/transport/csv';
 import {
-	buildInvoiceResponse,
 	customerGetResponse,
+	deliveryGetResponse,
+	invoiceGetResponse,
 	productGetResponse,
 	quotationGetResponse,
 	salesOrderGetResponse,
@@ -119,15 +120,15 @@ describe('mapRecord', () => {
 	});
 
 	it('filters by scope', () => {
-		const row = parseCsv(buildInvoiceResponse()).find((candidate) => candidate[0] === 'CMXINV');
+		const row = parseCsv(invoiceGetResponse).find((candidate) => candidate[0] === 'CMXINV');
 
 		const headerOnly = mapRecord(recordLayouts.CMXINV, row as string[], 'header');
 		const positionOnly = mapRecord(recordLayouts.CMXINV, row as string[], 'position');
 
-		expect(headerOnly.invoiceId).toBe(20001);
+		expect(headerOnly.invoiceId).toBe(1);
 		expect(headerOnly).not.toHaveProperty('productId');
 
-		expect(positionOnly.productId).toBe('ART-1');
+		expect(positionOnly.productId).toBe('1');
 		expect(positionOnly).not.toHaveProperty('invoiceId');
 	});
 });
@@ -303,49 +304,101 @@ describe('live sales order response', () => {
 	});
 });
 
+describe('live delivery response', () => {
+	const rows = parseCsv(deliveryGetResponse).filter((row) => row[0] === 'CMXDLV');
+	const delivery = groupDocuments(recordLayouts.CMXDLV, rows, 1)[0];
+	const positions = delivery.positions as Record<string, unknown>[];
+
+	it('returns exactly the documented 72 columns', () => {
+		for (const row of rows) {
+			expect(row).toHaveLength(72);
+		}
+	});
+
+	it('links back to the order it was created from', () => {
+		expect(delivery.deliveryId).toBe(1);
+		expect(delivery.orderId).toBe(1);
+		expect(positions.map((p) => p.salesOrderPosition)).toEqual([10, 20]);
+	});
+
+	it('keeps the delivery weight on the header', () => {
+		// One weight for the whole delivery, not per line item.
+		expect(delivery.weight).toBe(0.621);
+		expect(delivery.status).toBe(10);
+		expect(delivery.statusLabel).toBe('Offen');
+	});
+
+	it('carries the GTIN per line item', () => {
+		// Only the first product has one, so this also covers a field that is
+		// filled on one row and empty on the next.
+		expect(positions[0].gtin).toBe('4044951015290');
+		expect(positions[1]).not.toHaveProperty('gtin');
+	});
+});
+
+/**
+ * A field whose value changes from row to row describes a line item, not the
+ * document. Marking such a field as header data would silently drop every
+ * value but the first one's. This is the one scope mistake real data can
+ * expose, so it is checked against every captured document response.
+ */
+describe.each([
+	['CMXQTN', quotationGetResponse],
+	['CMXORD-2', salesOrderGetResponse],
+	['CMXDLV', deliveryGetResponse],
+	['CMXINV', invoiceGetResponse],
+])('%s scope markers', (type, response) => {
+	it('marks every field that varies between rows as line item data', () => {
+		const layout = recordLayouts[type];
+		const rows = parseCsv(response).filter((row) => row[0] === type);
+
+		// Rows of different documents differ in their header fields by design,
+		// so the comparison has to stay within one document.
+		const byDocument = new Map<string, string[][]>();
+		for (const row of rows) {
+			const id = row[1];
+			byDocument.set(id, [...(byDocument.get(id) ?? []), row]);
+		}
+
+		const misscoped: string[] = [];
+		for (const document of byDocument.values()) {
+			layout.forEach((spec, index) => {
+				if ((spec.scope ?? 'header') !== 'header') return;
+				const values = new Set(document.map((row) => row[index]));
+				if (values.size > 1) misscoped.push(`${index + 1} ${spec.name}`);
+			});
+		}
+		expect(misscoped).toEqual([]);
+	});
+});
+
 describe('groupDocuments', () => {
 	it('folds the line items of one invoice into a single document', () => {
-		const rows = parseCsv(buildInvoiceResponse()).filter((row) => row[0] === 'CMXINV');
+		const rows = parseCsv(invoiceGetResponse).filter((row) => row[0] === 'CMXINV');
 		const documents = groupDocuments(recordLayouts.CMXINV, rows, 1);
 
 		expect(documents).toHaveLength(1);
 
 		const invoice = documents[0];
-		expect(invoice.invoiceId).toBe(20001);
+		expect(invoice.invoiceId).toBe(1);
 		expect(invoice.customerId).toBe(10000);
-		expect(invoice.invoiceDate).toBe('2026-09-11');
-		expect(invoice.status).toBe(20);
-		expect(invoice.statusLabel).toBe('Offen');
+		expect(invoice.invoiceDate).toBe('2026-09-13');
+		expect(invoice.status).toBe(0);
+		expect(invoice.statusLabel).toBe('Neu');
 		expect(invoice.customerZip).toBe('01069');
 
 		// Line item data must not bleed into the header.
 		expect(invoice).not.toHaveProperty('productId');
 		expect(invoice).not.toHaveProperty('positionNumber');
 
-		expect(invoice.positions).toEqual([
-			{
-				positionNumber: 10,
-				positionType: 0,
-				positionTypeLabel: 'Normalposition',
-				productId: 'ART-1',
-				productDescription: 'Testprodukt A',
-				unit: 'Stk',
-				quantity: 2,
-				unitPrice: 19.99,
-				positionValue: 39.98,
-			},
-			{
-				positionNumber: 20,
-				positionType: 0,
-				positionTypeLabel: 'Normalposition',
-				productId: 'ART-2',
-				productDescription: 'Testprodukt B',
-				unit: 'Stk',
-				quantity: 1.5,
-				unitPrice: 1234.5,
-				positionValue: 1851.75,
-			},
-		]);
+		const positions = invoice.positions as Record<string, unknown>[];
+		expect(positions).toHaveLength(2);
+		expect(positions[1].productId).toBe('2');
+		expect(positions[1].productDescription).toBe('Anker 240W USB C auf USB C Kabel PD 3.1; 1,8m');
+		expect(positions[1].quantity).toBe(24);
+		expect(positions[1].unitPrice).toBe(14.99);
+		expect(positions[1].positionValue).toBe(359.76);
+		expect(positions[1].revenue).toBe(355.44);
 	});
 
 	it('starts a new document when the document number changes', () => {

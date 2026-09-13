@@ -11,9 +11,9 @@ import type { CollmexCredentials } from '../nodes/Collmex/transport/auth';
 import { applyCollmexAuth } from '../nodes/Collmex/transport/auth';
 import { parseCsv } from '../nodes/Collmex/transport/csv';
 import {
-	buildInvoiceResponse,
 	customerGetResponse,
 	emptyResultResponse,
+	invoiceGetResponse,
 	loginErrorResponse,
 	productGetResponse,
 	vendorGetResponse,
@@ -238,11 +238,11 @@ describe('documents', () => {
 				groupPositions: true,
 				options: {},
 			},
-			buildInvoiceResponse(),
+			invoiceGetResponse,
 		);
 
 		expect(items).toHaveLength(1);
-		expect(items[0].json.invoiceId).toBe(20001);
+		expect(items[0].json.invoiceId).toBe(1);
 		expect(items[0].json.positions).toHaveLength(2);
 	});
 
@@ -255,7 +255,7 @@ describe('documents', () => {
 				groupPositions: false,
 				options: {},
 			},
-			buildInvoiceResponse(),
+			invoiceGetResponse,
 		);
 
 		expect(items).toHaveLength(2);

@@ -40,60 +40,6 @@ export const loginErrorResponse = [
 	'',
 ].join('\n');
 
-/**
- * A two-line-item invoice.
- *
- * Unlike the fixtures above this one is constructed from the documented
- * CMXINV layout rather than captured, because the test tenant holds no
- * documents. Replace it with a captured response once one exists.
- */
-export function buildInvoiceResponse(): string {
-	const position = (
-		positionNumber: string,
-		productId: string,
-		description: string,
-		quantity: string,
-		unitPrice: string,
-		positionValue: string,
-	): string => {
-		const row = new Array<string>(96).fill('');
-		const set = (fieldNumber: number, value: string) => {
-			row[fieldNumber - 1] = value;
-		};
-
-		set(1, 'CMXINV');
-		set(2, '20001');
-		set(3, positionNumber);
-		set(4, '0 Rechnung');
-		set(5, '1 Max Mustermann');
-		set(7, '10000');
-		set(12, 'Testfirma 1');
-		set(14, 'Bayrische Str. 12');
-		set(15, '01069');
-		set(16, 'Dresden');
-		set(17, 'DE');
-		set(30, '11.09.2026');
-		set(32, '0 30 Tage ohne Abzug');
-		set(33, 'EUR');
-		set(46, '20 Offen');
-		set(69, '0 Normalposition');
-		set(70, productId);
-		set(71, description);
-		set(72, 'Stk');
-		set(73, quantity);
-		set(74, unitPrice);
-		set(77, positionValue);
-
-		return row.join(';');
-	};
-
-	return [
-		position('10', 'ART-1', 'Testprodukt A', '2', '19,99', '39,98'),
-		position('20', 'ART-2', 'Testprodukt B', '1,5', '1.234,50', '1.851,75'),
-		'MESSAGE;S;210053;INVOICE_GET hat 1 Datensätze zurückgegeben',
-		'',
-	].join('\n');
-}
 
 /**
  * A product query, captured live on 2026-09-13.
@@ -155,6 +101,44 @@ export const salesOrderGetResponse = [
 	"CMXORD-2;1;10;0;1 Max Mustermann;10000;;;;;Testfirma 1;;Bayrische Str. 12;01069;Dresden;DE;;;;;;;;;;;;0;;20260913;20260913;2 14 Tage 3%, 30 Tage o.A.;EUR;0 Standard;0 ;1,20;Erstkauf;;;;0;0;0;0 Neu;0;0;0;;0,00;;;;0 ;2,00;0,00;CFR;;;;;;;;;;;;;;;;0;1;Kabel USB 2.0 grau;PCE;13;0,00;20260930;1;0,00;0,00;0;0;0;0;0;0;0,00;0,00;0,00;0,00;0,00;0;0;425,35;3;;0;1",
 	"CMXORD-2;1;20;0;1 Max Mustermann;10000;;;;;Testfirma 1;;Bayrische Str. 12;01069;Dresden;DE;;;;;;;;;;;;0;;20260913;20260913;2 14 Tage 3%, 30 Tage o.A.;EUR;0 Standard;0 ;1,20;Erstkauf;;;;0;0;0;0 Neu;0;0;0;;0,00;;;;0 ;2,00;0,00;CFR;;;;;;;;;;;;;;;;0;2;\"Anker 240W USB C auf USB C Kabel PD 3.1; 1,8m\";PCE;24;14,99;20260930;1;0,00;359,76;0;0;0;0;0;0;355,44;0,00;355,44;100,00;0,00;0;0;425,35;3;;0;1",
 	"MESSAGE;S;227007;SALES_ORDER_GET hat 1 Datensätze zurückgegeben",
+	"MESSAGE;S;204020;Datenübertragung erfolgreich. Es wurden 1 Datensätze verarbeitet.",
+	"",
+].join("\r\n");
+
+/**
+ * A delivery query, captured live on 2026-09-13, for a delivery created
+ * from sales order 1.
+ *
+ * Six fields differ between the two rows here - position number, product,
+ * description, quantity, the originating order position and the GTIN - which
+ * makes this the sharpest test of the header/line item split: a field that
+ * varies per row cannot be header data.
+ *
+ * One edit against the wire: the company name is anonymised.
+ */
+export const deliveryGetResponse = [
+	"CMXDLV;1;10;0;1 Max Mustermann;10000;1;;;;;Testfirma 1;;Bayrische Str. 12;01069;Dresden;DE;;;;;;;;;;;;0;;20260913;;;;0;0;10 Offen;0;0;0,621;;;;0 ;CFR;;;;;;;;;;;;;;;;0;1;Kabel USB 2.0 grau;PCE;13;10;4044951015290;0;;;;",
+	"CMXDLV;1;20;0;1 Max Mustermann;10000;1;;;;;Testfirma 1;;Bayrische Str. 12;01069;Dresden;DE;;;;;;;;;;;;0;;20260913;;;;0;0;10 Offen;0;0;0,621;;;;0 ;CFR;;;;;;;;;;;;;;;;0;2;\"Anker 240W USB C auf USB C Kabel PD 3.1; 1,8m\";PCE;24;20;;0;;;;",
+	"MESSAGE;S;230004;DELIVERY_GET hat 1 Datensätze zurückgegeben",
+	"MESSAGE;S;204020;Datenübertragung erfolgreich. Es wurden 1 Datensätze verarbeitet.",
+	"",
+].join("\r\n");
+
+/**
+ * An invoice query, captured live on 2026-09-13, for an invoice booked from
+ * sales order 1 and delivery 1.
+ *
+ * Eleven fields differ between the two rows, which is the strongest check
+ * of the header/line item split of all the captured responses. It also
+ * closes the chain: field 6 names the order, field 90 the delivery, and the
+ * order in turn names quotation 3.
+ *
+ * One edit against the wire: the company name is anonymised.
+ */
+export const invoiceGetResponse = [
+	"CMXINV;1;10;0;1 Max Mustermann;1;10000;;;;;Testfirma 1;;Bayrische Str. 12;01069;Dresden;DE;;;;;;;;;;;;0;20260913;20260913;2 14 Tage 3%, 30 Tage o.A.;EUR;0 Standard;0 ;1,20;Erstkauf;;;;0;0;0;0;;0 Neu;0,00;;0 ;2,00;0,00;20260913;CFR;;;;;;;;;;;;;;;;0;1;Kabel USB 2.0 grau;PCE;13;0,00;1;0,00;0,00;0;0;0;10;0;;0,00;0,00;0,00;0,00;0,00;4044951015290;1;;0;;0;0;0,00",
+	"CMXINV;1;20;0;1 Max Mustermann;1;10000;;;;;Testfirma 1;;Bayrische Str. 12;01069;Dresden;DE;;;;;;;;;;;;0;20260913;20260913;2 14 Tage 3%, 30 Tage o.A.;EUR;0 Standard;0 ;1,20;Erstkauf;;;;0;0;0;0;;0 Neu;0,00;;0 ;2,00;0,00;20260913;CFR;;;;;;;;;;;;;;;;0;2;\"Anker 240W USB C auf USB C Kabel PD 3.1; 1,8m\";PCE;24;14,99;1;0,00;359,76;0;0;0;20;0;;355,44;0,00;355,44;100,00;0,00;;1;;0;;0;0;0,00",
+	"MESSAGE;S;210053;INVOICE_GET hat 1 Datensätze zurückgegeben",
 	"MESSAGE;S;204020;Datenübertragung erfolgreich. Es wurden 1 Datensätze verarbeitet.",
 	"",
 ].join("\r\n");

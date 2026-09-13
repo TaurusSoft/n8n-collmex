@@ -35,6 +35,16 @@ needed. This reverts them to the 0.1.1 shape.
   presence, products with a price only, free text search, plus the usual
   company override and `Only Changed` with `System Name`.
 
+### Added
+
+- Captured responses for every record type the node reads, replacing the one
+  invoice fixture that had been constructed from the documentation. All seven
+  layouts are now checked against data Collmex actually sent.
+- A scope invariant over the captured document responses: a field whose value
+  changes from row to row within one document describes a line item, so
+  marking it as header data would silently drop all but the first value. This
+  is the one scope mistake real data can expose.
+
 ### Fixed
 
 - `finalDiscount` on quotations, sales orders and invoices, and
