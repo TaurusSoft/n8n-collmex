@@ -135,3 +135,26 @@ export const quotationGetResponse = [
 	"MESSAGE;S;204020;Datenübertragung erfolgreich. Es wurden 1 Datensätze verarbeitet.",
 	"",
 ].join("\r\n");
+
+/**
+ * A sales order query, captured live on 2026-09-13, for an order created
+ * from quotation 3.
+ *
+ * This is the regression case for the eight header fields that sit in the
+ * middle of the line item block (86, 87, 93 to 98). Two of them carry
+ * telling values: field 95 is the gross total and field 96 the originating
+ * quotation, both identical on every row. Had they been line item data,
+ * each row would carry its own.
+ *
+ * The totals cross-check: 24 x 14.99 = 359.76, less 1.2 percent = 355.44,
+ * plus 2.00 shipping = 357.44, plus 19 percent VAT = 425.35.
+ *
+ * One edit against the wire: the company name is anonymised.
+ */
+export const salesOrderGetResponse = [
+	"CMXORD-2;1;10;0;1 Max Mustermann;10000;;;;;Testfirma 1;;Bayrische Str. 12;01069;Dresden;DE;;;;;;;;;;;;0;;20260913;20260913;2 14 Tage 3%, 30 Tage o.A.;EUR;0 Standard;0 ;1,20;Erstkauf;;;;0;0;0;0 Neu;0;0;0;;0,00;;;;0 ;2,00;0,00;CFR;;;;;;;;;;;;;;;;0;1;Kabel USB 2.0 grau;PCE;13;0,00;20260930;1;0,00;0,00;0;0;0;0;0;0;0,00;0,00;0,00;0,00;0,00;0;0;425,35;3;;0;1",
+	"CMXORD-2;1;20;0;1 Max Mustermann;10000;;;;;Testfirma 1;;Bayrische Str. 12;01069;Dresden;DE;;;;;;;;;;;;0;;20260913;20260913;2 14 Tage 3%, 30 Tage o.A.;EUR;0 Standard;0 ;1,20;Erstkauf;;;;0;0;0;0 Neu;0;0;0;;0,00;;;;0 ;2,00;0,00;CFR;;;;;;;;;;;;;;;;0;2;\"Anker 240W USB C auf USB C Kabel PD 3.1; 1,8m\";PCE;24;14,99;20260930;1;0,00;359,76;0;0;0;0;0;0;355,44;0,00;355,44;100,00;0,00;0;0;425,35;3;;0;1",
+	"MESSAGE;S;227007;SALES_ORDER_GET hat 1 Datensätze zurückgegeben",
+	"MESSAGE;S;204020;Datenübertragung erfolgreich. Es wurden 1 Datensätze verarbeitet.",
+	"",
+].join("\r\n");

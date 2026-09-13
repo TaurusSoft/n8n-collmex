@@ -7,6 +7,7 @@ import {
 	customerGetResponse,
 	productGetResponse,
 	quotationGetResponse,
+	salesOrderGetResponse,
 	vendorGetResponse,
 } from './fixtures';
 
@@ -242,6 +243,63 @@ describe('live quotation response', () => {
 		expect(text).toContain('Wir freuen uns auf Ihren Auftrag');
 		expect(text).toContain('Viele Gr');
 		expect(text).not.toContain(String.fromCharCode(13));
+	});
+});
+
+describe('live sales order response', () => {
+	const layout = recordLayouts['CMXORD-2'];
+	const rows = parseCsv(salesOrderGetResponse).filter((row) => row[0] === 'CMXORD-2');
+	const order = groupDocuments(layout, rows, 1)[0];
+	const positions = order.positions as Record<string, unknown>[];
+
+	it('returns exactly the documented 99 columns', () => {
+		for (const row of rows) {
+			expect(row).toHaveLength(99);
+		}
+	});
+
+	it('folds two rows into one order with two line items', () => {
+		expect(order.orderId).toBe(1);
+		expect(positions).toHaveLength(2);
+	});
+
+	it('keeps the header fields buried in the line item block on the header', () => {
+		// Fields 86, 87 and 93 to 98 sit among the line item fields, and the
+		// documentation calls them order header data. Two of them prove it:
+		// the gross total and the originating quotation are identical on every
+		// row, which line item data would not be.
+		expect(order.totalAmountGross).toBe(425.35);
+		expect(order.quotationId).toBe(3);
+		expect(order.finallyDelivered).toBe(0);
+		expect(order.finallyInvoiced).toBe(0);
+		expect(order.deliveryBlock).toBe(0);
+
+		for (const position of positions) {
+			expect(position).not.toHaveProperty('totalAmountGross');
+			expect(position).not.toHaveProperty('quotationId');
+		}
+	});
+
+	it('keeps field 99 with the line items', () => {
+		// deliveryRelevant is documented per line item, unlike its neighbours.
+		expect(positions.map((p) => p.deliveryRelevant)).toEqual([1, 1]);
+		expect(order).not.toHaveProperty('deliveryRelevant');
+	});
+
+	it('adds up', () => {
+		// 24 x 14.99 = 359.76, less 1.2 percent = 355.44, plus 2.00 shipping,
+		// plus 19 percent VAT = 425.35. Every number on that path is parsed.
+		expect(positions[1].quantity).toBe(24);
+		expect(positions[1].unitPrice).toBe(14.99);
+		expect(positions[1].positionValue).toBe(359.76);
+		expect(order.finalDiscount).toBe(1.2);
+		expect(order.shippingCosts).toBe(2);
+		expect(order.totalAmountGross).toBe(425.35);
+	});
+
+	it('splits a coded value whose label contains a comma', () => {
+		expect(order.paymentCondition).toBe(2);
+		expect(order.paymentConditionLabel).toBe('14 Tage 3%, 30 Tage o.A.');
 	});
 });
 
