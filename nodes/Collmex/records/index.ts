@@ -33,7 +33,10 @@ export function mapRecord(
 ): IDataObject {
 	const result: IDataObject = {};
 
-	for (let i = 0; i < row.length; i++) {
+	// Field 1 holds the record type. It is how a row is recognised, not data
+	// about the record, and `extractRecords` has already used it by this point -
+	// so it is skipped rather than repeated on every item.
+	for (let i = 1; i < row.length; i++) {
 		const spec = layout[i];
 
 		if (spec === undefined) {

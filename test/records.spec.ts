@@ -50,7 +50,6 @@ describe('mapRecord', () => {
 		expect(row).toHaveLength(54);
 
 		expect(mapRecord(recordLayouts.CMXKND, row as string[])).toEqual({
-			recordType: 'CMXKND',
 			customerId: 10000,
 			companyId: 1,
 			companyIdLabel: 'Max Mustermann',
@@ -83,6 +82,12 @@ describe('mapRecord', () => {
 			createdAt: '2026-09-11',
 			invoiceFormat: 0,
 		});
+	});
+
+	it('leaves the record type out of the output', () => {
+		// It identifies the row, it is not data about the record, and the caller
+		// already knows what it asked for.
+		expect(mapRecord(recordLayouts.CMXKND, customers[0])).not.toHaveProperty('recordType');
 	});
 
 	it('omits fields Collmex left empty', () => {
