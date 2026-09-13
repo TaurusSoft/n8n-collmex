@@ -51,7 +51,7 @@ export const loginErrorResponse = [
  * here instead of being joined on one terminator.
  *
  * Two edits against the wire, and no others: the company name is anonymised,
- * and the 1023 character comment is cut to two paragraphs, marked [gekuerzt].
+ * and the 1023 character comment is cut to two paragraphs, marked '[gekürzt]'.
  */
 export const productGetResponse = [
 	"CMXPRD;1;Kabel USB 2.0 grau;Cable USB 2.0 gray;PCE;1 Elektro;1 Max Mustermann;0 19%;0,000;;1;0 Ware;0;0 Standard;;4044951015290;Sharkoon;0 ;0;0;;0 Einkauf;;;;Eigenschaften: Kabellänge 0,5 m, Version USB 2.0, 1 USB-Anschluss, 2 USB, männlich/männlich, Farbe: Grau.;0 Automatisch;0,00;1;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;0;;;0;;;0;",

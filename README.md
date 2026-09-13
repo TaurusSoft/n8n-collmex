@@ -91,6 +91,19 @@ Most queries support **Only Changed** together with **System Name**. Collmex sto
 
 ## Version history
 
+### 0.2.0
+
+Adds the Product resource, and every record type is now verified against data
+Collmex actually returned rather than against the documentation alone.
+
+Two breaking changes, both small:
+
+- Items no longer carry a `recordType` property. It named the CSV record type
+  rather than describing the record, and you already know which resource you
+  queried. A workflow reading `$json.recordType` has to drop that reference.
+- The **Request Character Set** credential field is gone; requests always use
+  UTF-8. Nothing needs re-entering, the stored value is simply ignored.
+
 ### 0.1.6
 
 No functional change over 0.1.5; released so the package could be resubmitted for verification. Verified for n8n Cloud from this version on.

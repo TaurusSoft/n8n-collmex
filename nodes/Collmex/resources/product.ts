@@ -27,7 +27,7 @@ export const productDescription: INodeProperties[] = [
 		type: 'string',
 		required: true,
 		default: '',
-		description: 'Number of the product to retrieve',
+		description: 'Identifier of the product to retrieve. Collmex product numbers may contain letters.',
 		displayOptions: { show: { resource: [RESOURCE], operation: ['get'] } },
 	},
 	...paginationProperties(RESOURCE),

@@ -5,28 +5,15 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.0]
 
 The package passed verification with 0.1.6 once `main` carried the credential
 test, which confirms that the 0.1.2 and 0.1.3 reworks of the test were never
 needed. This reverts them to the 0.1.1 shape.
 
-### Changed
-
-- The credential test is a plain `CUSTOMER_GET` again and goes through
-  `authenticate` like every other request, which prepends the `LOGIN` record
-  and fills in the customer endpoint. The self-contained variant duplicated the
-  `LOGIN` format in a second place, where it could drift out of step with the
-  encoding the body actually used.
-- `authenticate` no longer special-cases a body that already starts with
-  `LOGIN;`, and no longer clears `baseURL`; nothing sets one any more.
-- Output no longer repeats the Collmex record type on every item. It identifies
-  the CSV row rather than describing the record, and the caller already knows
-  which resource it queried.
-
-### Removed
-
-- `hasUnknownRecords`, which was exported but never called.
+Alongside that, every record type is now checked against data Collmex actually
+sent, which turned up one mapping bug and settled several layout questions
+that had only been read out of the documentation until now.
 
 ### Added
 
@@ -34,9 +21,6 @@ needed. This reverts them to the 0.1.1 shape.
   mapping the 67 fields of `CMXPRD`. Filters: product group, price group, web
   presence, products with a price only, free text search, plus the usual
   company override and `Only Changed` with `System Name`.
-
-### Added
-
 - Captured responses for every record type the node reads, replacing the one
   invoice fixture that had been constructed from the documentation. All seven
   layouts are now checked against data Collmex actually sent.
@@ -44,6 +28,20 @@ needed. This reverts them to the 0.1.1 shape.
   changes from row to row within one document describes a line item, so
   marking it as header data would silently drop all but the first value. This
   is the one scope mistake real data can expose.
+
+### Changed
+
+- **Breaking: output no longer repeats the Collmex record type on every item.**
+  `recordType` identified the CSV row rather than describing the record, and
+  the caller already knows which resource it queried. A workflow reading
+  `$json.recordType` has to drop that reference.
+- The credential test is a plain `CUSTOMER_GET` again and goes through
+  `authenticate` like every other request, which prepends the `LOGIN` record
+  and fills in the customer endpoint. The self-contained variant duplicated the
+  `LOGIN` format in a second place, where it could drift out of step with the
+  encoding the body actually used.
+- `authenticate` no longer special-cases a body that already starts with
+  `LOGIN;`, and no longer clears `baseURL`; nothing sets one any more.
 
 ### Fixed
 
@@ -55,14 +53,15 @@ needed. This reverts them to the 0.1.1 shape.
 
 ### Removed
 
-- The **Request Character Set** credential field. It offered a choice with only
-  one sensible answer, so it now always announces UTF-8 in the `LOGIN` record
-  and encodes the body to match. Supporting ISO-8859-1 would require encoding
-  uploads differently for non-ASCII ('ü' is 1 byte in ISO-8859-1 but 2 in
-  UTF-8), and it cannot represent characters above U+00FF at all. Response
-  decoding was never affected - it follows the `charset` in Collmex's
-  `Content-Type`. Stored values on existing credentials are simply ignored.
-
+- **Breaking: the Request Character Set credential field.** It offered a choice
+  with only one sensible answer, so the node now always announces UTF-8 in the
+  `LOGIN` record and encodes the body to match. Supporting ISO-8859-1 would
+  require encoding uploads differently for non-ASCII ('ü' is 1 byte in
+  ISO-8859-1 but 2 in UTF-8), and it cannot represent characters above U+00FF
+  at all. Response decoding was never affected - it follows the `charset` in
+  Collmex's `Content-Type`. Stored values on existing credentials are ignored,
+  so no credential needs re-entering.
+- `hasUnknownRecords`, which was exported but never called.
 ## [0.1.6]
 
 No functional change over 0.1.5. Released only because the Creator Portal
