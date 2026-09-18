@@ -7,7 +7,7 @@ on:
 
 jobs:
   check:
-    uses: TaurusSoft/.github/.github/workflows/n8n-staleness-check.yml@main
+    uses: TaurusSoft/.github/.github/workflows/n8n-staleness-check.yml@v1
     permissions:
       contents: read
       issues: write
