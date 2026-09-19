@@ -1,5 +1,5 @@
 {
-	"node": "@taurussoftware/n8n-nodes-collmex",
+	"node": "@taurussoftware/n8n-nodes-collmex.collmex",
 	"nodeVersion": "1.0",
 	"codexVersion": "1.0",
 	"categories": ["Finance & Accounting", "Sales"],

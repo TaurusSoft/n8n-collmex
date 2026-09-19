@@ -5,6 +5,14 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1]
+
+### Fixed
+
+- The codex `node` identifier in `Collmex.node.json` is now the fully qualified
+  node type, `@taurussoftware/n8n-nodes-collmex.collmex`, instead of the bare
+  package name that `@n8n/node-cli` scaffolds.
+
 ## [0.2.0]
 
 The package passed verification with 0.1.6 once `main` carried the credential
@@ -62,6 +70,7 @@ that had only been read out of the documentation until now.
   Collmex's `Content-Type`. Stored values on existing credentials are ignored,
   so no credential needs re-entering.
 - `hasUnknownRecords`, which was exported but never called.
+
 ## [0.1.6]
 
 No functional change over 0.1.5. Released only because the Creator Portal
@@ -232,3 +241,10 @@ First release.
   writes back to Collmex, and this node is read-only.
 - The ZIP/PDF return formats of the document queries are not supported; queries
   always request CSV.
+
+## [0.0.1]
+
+Placeholder publish, superseded by 0.1.0 eleven minutes later. Released from the
+same commit and with the same code; it exists on npm only because the scaffold's
+default version went out before the first real bump. Never tagged. Use 0.1.0 or
+later.
