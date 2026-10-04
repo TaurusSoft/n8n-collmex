@@ -26,7 +26,9 @@ See the [installation guide](https://docs.n8n.io/integrations/community-nodes/in
 
 ## Operations
 
-This node is **read-only**. It queries Collmex but never creates or changes anything.
+The **Collmex** node is **read-only**. It queries Collmex and never creates or changes anything there.
+
+The **Collmex Trigger** writes exactly one kind of record, and only about itself: the API notification it registers when a workflow is activated, and switches off again when it is deactivated. It touches no business data either.
 
 | Resource           | Operations    | Collmex query         | Returns           |
 | ------------------ | ------------- | --------------------- | ----------------- |
