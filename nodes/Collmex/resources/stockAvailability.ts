@@ -36,6 +36,14 @@ export const stockAvailabilityDescription: INodeProperties[] = [
 export const stockAvailabilityHandler: ResourceHandler = {
 	resultType: 'STOCK_AVAILABLE',
 
+	delta: {
+		queryName: 'STOCK_AVAILABLE_GET',
+		fieldCount: FIELD_COUNT,
+		companyField: 2,
+		onlyChangedField: 4,
+		systemNameField: 5,
+	},
+
 	async buildQuery(context: IExecuteFunctions, itemIndex: number): Promise<string[]> {
 		const operation = context.getNodeParameter('operation', itemIndex) as string;
 		const options = context.getNodeParameter('options', itemIndex, {}) as IDataObject;

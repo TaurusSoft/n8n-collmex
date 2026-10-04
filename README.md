@@ -42,6 +42,45 @@ This node is **read-only**. It queries Collmex but never creates or changes anyt
 
 Each resource has an **Options** collection for the filters the corresponding Collmex query supports, such as date ranges, customer number, free text search and a company override.
 
+## Trigger
+
+The **Collmex Trigger** node starts a workflow when Collmex reports that data changed. Collmex calls this push mechanism API notifications, and recommends it over polling.
+
+Activating the workflow registers an `API_NOTIFICATION` for each selected event, pointing at the node's webhook URL; deactivating it removes them again. When an event occurs, Collmex calls that URL — **with no payload**, so the node answers the call by asking Collmex what changed, using the same incremental sync the regular node offers.
+
+| Event                               | Fetches             |
+| ----------------------------------- | ------------------- |
+| Available Stock Changed             | Stock Availability  |
+| Sales Order Changed                 | Sales Order         |
+| Delivery Changed                    | Delivery            |
+| Invoice Changed                     | Invoice             |
+| Quotation Changed                   | Quotation           |
+| Stock Changed                       | Stock               |
+| Product or Bill of Material Changed | Product             |
+| Customer or Vendor Changed          | Customer and Vendor |
+
+Collmex documents a ninth event, `Buchung ausgeführt` (a booking was made). It is deliberately not offered: this package has no accounting resource, so the trigger would wake the workflow up with nothing to hand it.
+
+Each item carries `collmexEvent` and `collmexResource` alongside the record's own fields, so a workflow subscribed to several events can route on them.
+
+Three things worth knowing:
+
+- **The notification does not say which event raised it.** Every event registered by one trigger points at the same URL, so the node queries all selected events on each notification. The queries go out in a single request, so it stays one API call per notification — but subscribing to everything means more work per notification than subscribing to what you need.
+- **Collmex sends at most one notification a minute**, and stops after 100 unacknowledged ones. Any query under the trigger's system name acknowledges them, which this node does on every call.
+- **Nothing changed means nothing runs.** If the query comes back empty the node acknowledges the notification without starting the workflow, so there are no empty executions.
+
+### System Name
+
+The trigger registers itself under a **System Name** of at most 20 characters, and Collmex remembers the position in the change log under it. Give every trigger its own name.
+
+Do not reuse the name of a regular Collmex node that queries the _same_ resource with **Only Changed**: Collmex keeps one position per system name **and** query, so whichever ran last would have consumed the changes and the other would see nothing. Different resources under one name are fine.
+
+### Polling instead of a webhook
+
+If your n8n instance has no URL Collmex can reach, you do not need a trigger node: a **Schedule Trigger** followed by a regular **Collmex** node with **Only Changed** and a **System Name** is a complete polling setup, and costs the same one API call per interval.
+
+The difference is that n8n records an execution on every interval, including the ones where nothing changed, whereas the trigger only runs the workflow when there is something to process.
+
 ## Credentials
 
 You need a Collmex account with API access, plus a dedicated API user.
@@ -130,6 +169,13 @@ Writing captures into the repository is optional; the fixtures in `test/fixtures
 - [Collmex API overview](https://www.collmex.de/c.cmx?1005,1,help,api_ueberblick) (German)
 
 ## Version history
+
+### 0.4.0
+
+Adds the **Collmex Trigger** node: Collmex notifies n8n when data changes, and
+the node answers by asking what changed. Eight events are supported; polling
+needs no trigger of its own and is documented as a Schedule Trigger recipe
+instead.
 
 ### 0.3.0
 

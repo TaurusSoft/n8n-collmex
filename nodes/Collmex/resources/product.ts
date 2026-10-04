@@ -73,6 +73,14 @@ export const productDescription: INodeProperties[] = [
 export const productHandler: ResourceHandler = {
 	resultType: 'CMXPRD',
 
+	delta: {
+		queryName: 'PRODUCT_GET',
+		fieldCount: FIELD_COUNT,
+		companyField: 2,
+		onlyChangedField: 6,
+		systemNameField: 7,
+	},
+
 	async buildQuery(context: IExecuteFunctions, itemIndex: number): Promise<string[]> {
 		const operation = context.getNodeParameter('operation', itemIndex) as string;
 		const options = context.getNodeParameter('options', itemIndex, {}) as IDataObject;
