@@ -35,6 +35,7 @@ export class Collmex implements INodeType {
 				type: 'options',
 				noDataExpression: true,
 				options: [
+					{ name: 'Booking', value: 'booking' },
 					{ name: 'Customer', value: 'customer' },
 					{ name: 'Delivery', value: 'delivery' },
 					{ name: 'Invoice', value: 'invoice' },

@@ -12,7 +12,12 @@ import { collmexEvents } from '../nodes/CollmexTrigger/events';
 import type { CollmexCredentials } from '../nodes/Collmex/transport/auth';
 import { applyCollmexAuth } from '../nodes/Collmex/transport/auth';
 import { parseCsv } from '../nodes/Collmex/transport/csv';
-import { customerGetResponse, invoiceGetResponse, vendorGetResponse } from './fixtures';
+import {
+	bookingResponse,
+	customerGetResponse,
+	invoiceGetResponse,
+	vendorGetResponse,
+} from './fixtures';
 
 const WEBHOOK_URL = 'https://n8n.example.com/webhook/abc';
 
@@ -86,8 +91,8 @@ describe('events', () => {
 		}
 	});
 
-	it('leaves out the booking event, which has no resource yet', () => {
-		expect(collmexEvents.map((event) => event.id)).toEqual([2, 3, 4, 5, 6, 7, 8, 9]);
+	it('offers all nine documented events', () => {
+		expect(collmexEvents.map((event) => event.id)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
 	});
 });
 
@@ -198,6 +203,22 @@ describe('notification handling', () => {
 		expect(items[0].json.collmexEvent).toBe(9);
 		expect(items[0].json.collmexResource).toBe('customer');
 		expect(items[0].json.customerId).toBe(9999);
+	});
+
+	it('serves event 1, Booking Made, through the booking resource', async () => {
+		// The one event this trigger previously had no resource for.
+		const { sent, result } = await notify(
+			{ systemName: 'n8n-test', events: [1], options: {}, groupPositions: true },
+			bookingResponse,
+		);
+
+		expect(sent).toEqual([
+			['ACCDOC_GET', '1', '', '', '', '', '', '', '', '', '', '', '', '', '', '1', 'n8n-test', ''],
+		]);
+
+		const items = result.workflowData?.[0] as INodeExecutionData[];
+		expect(items).toHaveLength(3);
+		expect(items.every((item) => item.json.collmexResource === 'booking')).toBe(true);
 	});
 
 	it('groups the line items of a document', async () => {

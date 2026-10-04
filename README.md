@@ -40,6 +40,7 @@ This node is **read-only**. It queries Collmex but never creates or changes anyt
 | Stock              | Get, Get Many | `STOCK_GET`           | `CMXSTK`          |
 | Stock Availability | Get, Get Many | `STOCK_AVAILABLE_GET` | `STOCK_AVAILABLE` |
 | Open Item          | Get Many      | `OPEN_ITEMS_GET`      | `OPEN_ITEM`       |
+| Booking            | Get Many      | `ACCDOC_GET`          | `ACCDOC`          |
 
 Each resource has an **Options** collection for the filters the corresponding Collmex query supports, such as date ranges, customer number, free text search and a company override.
 
@@ -61,6 +62,7 @@ Activating the workflow registers an `API_NOTIFICATION` for each selected event,
 
 | Event                               | Fetches             |
 | ----------------------------------- | ------------------- |
+| Booking Made                        | Booking             |
 | Available Stock Changed             | Stock Availability  |
 | Sales Order Changed                 | Sales Order         |
 | Delivery Changed                    | Delivery            |
@@ -70,7 +72,7 @@ Activating the workflow registers an `API_NOTIFICATION` for each selected event,
 | Product or Bill of Material Changed | Product             |
 | Customer or Vendor Changed          | Customer and Vendor |
 
-Collmex documents a ninth event, `Buchung ausgeführt` (a booking was made). It is deliberately not offered: this package has no accounting resource, so the trigger would wake the workflow up with nothing to hand it.
+All nine events Collmex documents are offered. A notification is nothing but a prompt to query, so each event needs a resource behind it to fetch from — `Buchung ausgeführt` was the last one without, until the **Booking** resource closed that gap.
 
 Each item carries `collmexEvent` and `collmexResource` alongside the record's own fields, so a workflow subscribed to several events can route on them.
 
@@ -142,6 +144,14 @@ The node makes **one call per input item**, and each dropdown makes one more whe
 
 The node does not bundle several items into one request. Collmex runs each exchange as a single database transaction, so one bad query rolls the whole thing back — bundling would make one malformed item fail every other item in the batch, and n8n could no longer say which one was at fault.
 
+### Bookings
+
+**Booking** returns the posting lines from Collmex accounting — one item per line, not one per booking. A single booking usually has several: an invoice books the receivable against the revenue and the tax account, which arrives as three items sharing the same `fiscalYear` and `accountingDocumentNumber`.
+
+They are deliberately **not** folded into one item with a `positions` array the way documents are. A booking number restarts every fiscal year, so grouping on it alone could merge two different years. Each line carries the full key instead, so a workflow can group them itself if it needs to.
+
+Two field notes. `side` is the literal word `Soll` or `Haben`, not the coded number the API documentation describes. And the posting date arrives twice: `documentDateText` as Collmex's dotted form, `documentDate` parsed to ISO — same for `postedAtText` and `postedAt`.
+
 ### Open items
 
 **Open Item** returns the unpaid receivables and payables from Collmex accounting. **Side** chooses which: receivables are what customers owe, payables what is owed to vendors. One record carries both a customer and a vendor column pair, and only the side you asked for is filled — the other arrives empty and is left out of the output.
@@ -207,11 +217,11 @@ filters into dropdowns filled from Collmex, so the internal numbers no longer
 have to be known. The stored value is still a plain string, so nothing about
 them changes for an existing workflow.
 
-Adds the **Stock** and **Stock Availability** resources, covering the stored
-quantities and the availability Collmex derives from them, and the **Collmex
-Trigger** node: Collmex notifies n8n when data changes, and the node answers by
-asking what changed. Eight events are supported; polling needs no trigger of its
-own and is documented as a Schedule Trigger recipe instead.
+Adds the **Stock**, **Stock Availability**, **Open Item** and **Booking**
+resources, and the **Collmex Trigger** node: Collmex notifies n8n when data
+changes, and the node answers by asking what changed. All nine documented
+events are supported; polling needs no trigger of its own and is documented as
+a Schedule Trigger recipe instead.
 
 The `(NULL)` constant Collmex writes where a value cannot exist is now left out
 of the output instead of arriving as a string. Both layouts are pinned against

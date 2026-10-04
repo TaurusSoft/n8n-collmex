@@ -4,11 +4,10 @@ import type { INodePropertyOptions } from 'n8n-workflow';
  * The events Collmex can notify about, as field 3 of `API_NOTIFICATION`, each
  * paired with the resources whose changes it announces.
  *
- * Collmex documents nine events. Only the eight below are offered, because a
- * notification is nothing but a trigger for a query - an event with no query
- * behind it would wake the workflow up with nothing to hand it. The one left
- * out is `1 = Buchung ausgeführt`, which needs an accounting resource this
- * package does not have yet.
+ * Collmex documents nine events, and all nine are offered: a notification is
+ * nothing but a trigger for a query, so every event needs a resource behind
+ * it to fetch, and the Booking resource closes what was the last gap - event
+ * 1 had none before it existed.
  *
  * Event 9 covers customers, vendors, addresses and members under a single
  * number, so it maps to more than one resource; of those, this package can
@@ -24,6 +23,12 @@ export interface CollmexEvent {
 }
 
 export const collmexEvents: CollmexEvent[] = [
+	{
+		id: 1,
+		name: 'Booking Made',
+		description: 'Fetches the created or changed postings',
+		resources: ['booking'],
+	},
 	{
 		id: 2,
 		name: 'Available Stock Changed',

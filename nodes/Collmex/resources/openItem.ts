@@ -12,6 +12,7 @@ import {
 	resolveCompanyId,
 	setField,
 	toCollmexDate,
+	vendorIdOption,
 } from './shared';
 
 const RESOURCE = 'openItem';
@@ -49,13 +50,7 @@ export const openItemDescription: INodeProperties[] = [
 		brokerOption('Employee who brokered the business, to filter by'),
 		companyIdOption,
 		customerIdOption,
-		{
-			displayName: 'Vendor ID',
-			name: 'vendorId',
-			type: 'string',
-			default: '',
-			description: 'Return only open items belonging to this vendor number',
-		},
+		vendorIdOption,
 	]),
 ];
 
