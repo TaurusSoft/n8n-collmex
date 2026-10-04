@@ -16,6 +16,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Stock Availability** resource with `Get` and `Get Many`, querying
   `STOCK_AVAILABLE_GET` and mapping the 6 fields of `STOCK_AVAILABLE`. This is
   the available quantity Collmex derives from stock minus due demands.
+- `scripts/capture-collmex.mjs`, the script the fixtures were captured with. It
+  queries a live tenant and probes one filter per documented field number,
+  printing what each query is expected to return, so a record layout can be
+  re-checked rather than taken on trust. `--dry-run` prints the query rows
+  without sending them and needs no credentials, which is enough to read the
+  field positions. Plain Node, no dependencies, and not part of the published
+  package.
 
 ### Changed
 

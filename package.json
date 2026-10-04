@@ -27,6 +27,7 @@
     "lint:fix": "n8n-node lint --fix",
     "test": "vitest run",
     "test:watch": "vitest",
+    "capture": "node scripts/capture-collmex.mjs",
     "release": "n8n-node release",
     "prepublishOnly": "n8n-node prerelease"
   },

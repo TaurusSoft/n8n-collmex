@@ -97,6 +97,32 @@ Note that the two resources report the company number differently: `CMXSTK` send
 
 Most queries support **Only Changed** together with **System Name**. Collmex stores the timestamp of the last query per system name, so a scheduled workflow using a stable system name (for example `n8n`) will only receive records created or changed since its previous run.
 
+## Verifying against a live tenant
+
+Every record layout in this package is pinned against a response captured from a real Collmex tenant, not against the documentation. That matters because a wrong field offset silently shifts every following value onto the wrong name, and the documentation has been wrong before — `CMXLIF` returns 42 fields where it lists 41.
+
+`scripts/capture-collmex.mjs` is how those captures are taken, so a layout can be re-checked rather than taken on trust. It needs no dependencies and writes nothing to the tenant.
+
+```bash
+export COLLMEX_CUSTOMER=123456   # customer number, part of the endpoint URL
+export COLLMEX_USER=apiuser      # an API user, with 'Nur für API' set
+export COLLMEX_PASSWORD=...
+
+npm run capture -- --suite stock                       # query and probe
+npm run capture -- --suite stock --out test/captures   # also write the responses
+npm run capture -- 'STOCK_GET;1;;;;;;;'                # one raw query row
+```
+
+Without a tenant at hand, `--dry-run` prints the query rows and sends nothing, so the field positions the node builds can be read without credentials:
+
+```bash
+npm run capture -- --suite stock --dry-run
+```
+
+A suite runs the queries behind a resource's fixtures plus one probe per filter, printing what each one is expected to return next to the result. It exits non-zero if a query comes back with an error record, which Collmex reports with HTTP 200 — so the exit code reflects the body, not the status line.
+
+Writing captures into the repository is optional; the fixtures in `test/fixtures.ts` carry the responses they were built from and say whether each one was captured or constructed.
+
 ## Resources
 
 * [n8n community nodes documentation](https://docs.n8n.io/integrations/#community-nodes)
