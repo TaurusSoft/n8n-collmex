@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   documented events are offered — `Buchung ausgeführt` is left out until there
   is an accounting resource to query, since a notification with nothing behind
   it would only wake a workflow up empty.
+- A codex file for the trigger, so it carries the same categories and
+  documentation links in the node panel as the Collmex node does. It was
+  missing, which nothing enforces and nothing would have reported.
 - Trigger items carry `collmexEvent` and `collmexResource` beside the record's
   own fields, so a workflow subscribed to several events can route on them.
 - `DeltaQuerySpec` on each resource handler, stating where that query keeps its
