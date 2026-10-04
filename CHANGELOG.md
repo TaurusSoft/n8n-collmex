@@ -26,13 +26,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Note
 
-Both layouts are pinned against a live capture taken on 2026-10-04. Two
-documented details could not be reproduced in the test tenant and rest on the
-documentation alone: the `(NULL)` availability of a non-stockable product, and
-the FBA stock type. Batch numbers, a non-zero stock value, a positive
-replenishment time and the as-of date are likewise unexercised, since the
-tenant has no batch-managed product, no product costs and no backdated
-stocktaking.
+Both layouts are pinned against a live capture taken on 2026-10-04, including
+the `(NULL)` availability of a service product and the derivation of the
+available quantity. Two things still rest on the documentation alone, because
+the test tenant cannot produce them: the FBA stock type, and batch numbers and
+descriptions. The query filters, including the as-of date, are tested against
+the documented field numbers but not yet against the live API.
 
 The capture corrected one wrong assumption before release: the company number
 arrives as a bare number in `STOCK_AVAILABLE`, while `CMXSTK` sends it as a

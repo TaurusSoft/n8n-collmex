@@ -15,9 +15,13 @@ import { header } from './types';
  * demands already due - so it goes negative where demand exceeds stock, and
  * comes back as the literal `(NULL)` for products that cannot hold stock at
  * all, such as services. `assignField` drops that, so the field is absent
- * rather than holding a marker. A negative `replenishmentTime` means Collmex
- * could not work the lead time out because the product has no valid vendor
- * agreement.
+ * rather than holding a marker.
+ *
+ * `replenishmentTime` is documented as negative where Collmex could not work
+ * the lead time out for want of a valid vendor agreement, which is what a
+ * stocked product without one reports. A service reports 0 instead, even
+ * though it has no agreement either - observed, not documented, so do not
+ * read a missing agreement out of a zero.
  */
 export const stockAvailable: FieldSpec[] = [
 	header('recordType', 'C'),

@@ -10,7 +10,6 @@ import {
 	quotationGetResponse,
 	salesOrderGetResponse,
 	stockAvailableGetResponse,
-	stockAvailableServiceResponse,
 	stockGetResponse,
 	vendorGetResponse,
 } from './fixtures';
@@ -445,9 +444,8 @@ describe('stock records', () => {
 			stockType: 0,
 			stockTypeLabel: 'Frei',
 			batchNumber: 0,
-			// Zero because the product carries no costs, not because the field
-			// is unused - the value is product costs times quantity.
-			value: 0,
+			// Product costs times quantity, written with the German comma.
+			value: 39.5,
 			productDescription: 'Kabel USB 2.0 grau',
 			storageLocation: 'L-K56',
 			baseUnit: 'PCE',
@@ -461,6 +459,7 @@ describe('stock records', () => {
 		expect(mapped.map((record) => record.productId)).toEqual(['1', '1']);
 		expect(mapped.map((record) => record.stockTypeLabel)).toEqual(['Frei', 'Gesperrt']);
 		expect(mapped.map((record) => record.quantity)).toEqual([50, 25]);
+		expect(mapped.map((record) => record.value)).toEqual([39.5, 19.75]);
 	});
 
 	it('maps an availability record onto the expected names', () => {
@@ -476,7 +475,7 @@ describe('stock records', () => {
 			companyId: 1,
 			availableQuantity: 37,
 			unit: 'PCE',
-			replenishmentTime: 0,
+			replenishmentTime: 12,
 		});
 	});
 
@@ -497,15 +496,30 @@ describe('stock records', () => {
 	});
 
 	it('drops the (NULL) quantity of a product that cannot hold stock', () => {
-		const row = parseCsv(stockAvailableServiceResponse).find(
+		// Product 3 is a service. Everything else about the record is still
+		// data, so only the quantity goes missing.
+		const rows = parseCsv(stockAvailableGetResponse).filter(
 			(candidate) => candidate[0] === 'STOCK_AVAILABLE',
 		);
 
-		const mapped = mapRecord(recordLayouts.STOCK_AVAILABLE, row as string[]);
+		const mapped = mapRecord(recordLayouts.STOCK_AVAILABLE, rows[2]);
 
 		expect(mapped).not.toHaveProperty('availableQuantity');
-		// The negative lead time is kept: it is Collmex saying it could not
-		// work one out, which is different from the field being absent.
-		expect(mapped.replenishmentTime).toBe(-1);
+		expect(mapped).toEqual({
+			productId: '3',
+			companyId: 1,
+			unit: 'HR',
+			replenishmentTime: 0,
+		});
+	});
+
+	it('keeps a lead time of zero rather than dropping it', () => {
+		// 0 is a value here, not an absence: assignField only skips empty
+		// fields, so the service product keeps its zero.
+		const rows = parseCsv(stockAvailableGetResponse).filter(
+			(candidate) => candidate[0] === 'STOCK_AVAILABLE',
+		);
+
+		expect(mapRecord(recordLayouts.STOCK_AVAILABLE, rows[2]).replenishmentTime).toBe(0);
 	});
 });

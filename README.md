@@ -108,8 +108,8 @@ quantities and the availability Collmex derives from them.
 
 The `(NULL)` constant Collmex writes where a value cannot exist is now left out
 of the output instead of arriving as a string. Both layouts are pinned against
-a live capture; the `(NULL)` case and the FBA stock type could not be
-reproduced in the test tenant and rest on the documentation alone.
+a live capture; only the FBA stock type and the batch fields rest on the
+documentation alone, for want of a test tenant that has them.
 
 ### 0.2.0
 

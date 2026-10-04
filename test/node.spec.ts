@@ -17,7 +17,6 @@ import {
 	loginErrorResponse,
 	productGetResponse,
 	stockAvailableGetResponse,
-	stockAvailableServiceResponse,
 	stockGetResponse,
 	vendorGetResponse,
 } from './fixtures';
@@ -434,11 +433,11 @@ describe('stock availability', () => {
 		);
 
 		expect(sent).toEqual([['STOCK_AVAILABLE_GET', '1', '', '', '']]);
-		expect(items).toHaveLength(2);
+		expect(items).toHaveLength(3);
 		// 50 units of free stock less a demand of 13; the 25 blocked units do
 		// not count towards availability.
 		expect(items[0].json.availableQuantity).toBe(37);
-		expect(items[0].json.replenishmentTime).toBe(0);
+		expect(items[0].json.replenishmentTime).toBe(12);
 		// No stock against a demand of 24, so availability goes negative.
 		expect(items[1].json.availableQuantity).toBe(-24);
 		expect(items[1].json.replenishmentTime).toBe(-1);
@@ -447,11 +446,13 @@ describe('stock availability', () => {
 	it('omits the availability of a product that cannot hold stock', async () => {
 		const { items } = await run(
 			{ resource: 'stockAvailability', operation: 'getAll', returnAll: true, options: {} },
-			stockAvailableServiceResponse,
+			stockAvailableGetResponse,
 		);
 
-		expect(items[0].json).not.toHaveProperty('availableQuantity');
-		expect(items[0].json.productId).toBe('DIENST');
+		// Product 3 is a service: Collmex sends (NULL) in place of a quantity.
+		expect(items[2].json.productId).toBe('3');
+		expect(items[2].json).not.toHaveProperty('availableQuantity');
+		expect(items[2].json.unit).toBe('HR');
 	});
 
 	it('maps options onto the documented field numbers', async () => {

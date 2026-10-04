@@ -145,19 +145,20 @@ export const invoiceGetResponse = [
 
 /**
  * A stock query, captured live on 2026-10-04 with 50 units of free and 25 of
- * blocked stock booked on product 1.
+ * blocked stock booked on product 1, which costs 0,79 a piece.
  *
  * What makes this one worth keeping: both records belong to the same product,
  * which is how Collmex reports a stock object per product, stock type and
- * batch. The quantities arrive as bare integers while the value uses the
- * German decimal comma, and the stock type carries its label behind the code
- * the way the other coded enumerations do.
+ * batch. Quantities arrive as bare integers while the value uses the German
+ * decimal comma, and it really is costs times quantity - 39,50 against 50 and
+ * 19,75 against 25. The stock type carries its label behind the code the way
+ * the other coded enumerations do.
  *
  * One edit against the wire: the company name is anonymised.
  */
 export const stockGetResponse = [
-	'CMXSTK;1;1 Max Mustermann;50;0 Frei;0;0,00;;Kabel USB 2.0 grau;L-K56;PCE',
-	'CMXSTK;1;1 Max Mustermann;25;1 Gesperrt;0;0,00;;Kabel USB 2.0 grau;L-K56;PCE',
+	'CMXSTK;1;1 Max Mustermann;50;0 Frei;0;39,50;;Kabel USB 2.0 grau;L-K56;PCE',
+	'CMXSTK;1;1 Max Mustermann;25;1 Gesperrt;0;19,75;;Kabel USB 2.0 grau;L-K56;PCE',
 	'MESSAGE;S;228033;STOCK_GET hat 2 Datensätze zurückgegeben',
 	'MESSAGE;S;204020;Datenübertragung erfolgreich. Es wurden 1 Datensätze verarbeitet.',
 	'',
@@ -166,32 +167,26 @@ export const stockGetResponse = [
 /**
  * The matching availability query, captured in the same run.
  *
- * Two things this pins. The company arrives as a bare number here, *without*
+ * Four things this pins. The company arrives as a bare number here, *without*
  * the label CMXSTK puts behind it - the two record types genuinely differ, so
- * do not "fix" one to match the other. And the arithmetic is visible: product
- * 1 reports 37 against 50 units of free stock, because 13 are already demanded
- * and the 25 blocked units do not count as available. Product 2 holds no stock
- * against a demand of 24, which is how a negative availability arises.
+ * do not "fix" one to match the other.
+ *
+ * The arithmetic is visible: product 1 reports 37 against 50 units of free
+ * stock, because 13 are already demanded and the 25 blocked units do not count
+ * as available. Product 2 holds no stock against a demand of 24, which is how
+ * a negative availability arises - it is a balance, not a quantity.
+ *
+ * Product 3 is a service, which cannot hold stock at all, so Collmex sends the
+ * literal `(NULL)` in place of a quantity. Note that its lead time is 0 rather
+ * than the -1 product 2 reports, although neither has a vendor agreement.
  *
  * Collmex sends no record-count message for this query, only the closing
  * success - unlike every other query in this file.
  */
 export const stockAvailableGetResponse = [
-	'STOCK_AVAILABLE;1;1;37;PCE;0',
+	'STOCK_AVAILABLE;1;1;37;PCE;12',
 	'STOCK_AVAILABLE;2;1;-24;PCE;-1',
-	'MESSAGE;S;204020;Datenübertragung erfolgreich. Es wurden 1 Datensätze verarbeitet.',
-	'',
-].join('\r\n');
-
-/**
- * CONSTRUCTED, not captured: the test tenant has no service product, so there
- * is nothing that reports an availability of `(NULL)`. The constant and the
- * negative lead time are both documented, and this pins how they are parsed,
- * but it is not evidence of the wire format. Replace it with a real capture
- * once a non-stockable product exists.
- */
-export const stockAvailableServiceResponse = [
-	'STOCK_AVAILABLE;DIENST;1;(NULL);STD;-1',
+	'STOCK_AVAILABLE;3;1;(NULL);HR;0',
 	'MESSAGE;S;204020;Datenübertragung erfolgreich. Es wurden 1 Datensätze verarbeitet.',
 	'',
 ].join('\r\n');
