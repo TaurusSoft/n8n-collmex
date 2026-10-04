@@ -1,61 +1,63 @@
 {
-  "name": "@taurussoftware/n8n-nodes-collmex",
-  "version": "0.3.0",
-  "description": "n8n community node to read customers, vendors, products, quotations, sales orders, invoices and deliveries from the Collmex API",
-  "license": "MIT",
-  "homepage": "https://github.com/TaurusSoft/n8n-collmex#readme",
-  "keywords": [
-    "n8n-community-node-package",
-    "collmex",
-    "erp",
-    "accounting",
-    "invoicing"
-  ],
-  "author": {
-    "name": "Martin Hey",
-    "email": "info@taurussoftware.de"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/TaurusSoft/n8n-collmex.git"
-  },
-  "scripts": {
-    "build": "n8n-node build",
-    "build:watch": "tsc --watch",
-    "dev": "n8n-node dev",
-    "lint": "n8n-node lint",
-    "lint:fix": "n8n-node lint --fix",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "capture": "node scripts/capture-collmex.mjs",
-    "release": "n8n-node release",
-    "prepublishOnly": "n8n-node prerelease"
-  },
-  "files": [
-    "dist"
-  ],
-  "publishConfig": {
-    "access": "public"
-  },
-  "n8n": {
-    "n8nNodesApiVersion": 1,
-    "strict": true,
-    "credentials": [
-      "dist/credentials/CollmexApi.credentials.js"
-    ],
-    "nodes": [
-      "dist/nodes/Collmex/Collmex.node.js"
-    ]
-  },
-  "devDependencies": {
-    "@n8n/node-cli": "*",
-    "eslint": "9.39.5",
-    "prettier": "3.9.9",
-    "release-it": "^21.0.0",
-    "typescript": "5.9.3",
-    "vitest": "^5.0.0"
-  },
-  "peerDependencies": {
-    "n8n-workflow": "*"
-  }
+	"name": "@taurussoftware/n8n-nodes-collmex",
+	"version": "0.3.0",
+	"description": "n8n community node to read customers, vendors, products, quotations, sales orders, invoices and deliveries from the Collmex API",
+	"license": "MIT",
+	"homepage": "https://github.com/TaurusSoft/n8n-collmex#readme",
+	"keywords": [
+		"n8n-community-node-package",
+		"collmex",
+		"erp",
+		"accounting",
+		"invoicing"
+	],
+	"author": {
+		"name": "Martin Hey",
+		"email": "info@taurussoftware.de"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/TaurusSoft/n8n-collmex.git"
+	},
+	"scripts": {
+		"build": "n8n-node build",
+		"build:watch": "tsc --watch",
+		"dev": "n8n-node dev",
+		"lint": "n8n-node lint",
+		"lint:fix": "n8n-node lint --fix",
+		"format": "prettier --write .",
+		"format:check": "prettier --check .",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"capture": "node scripts/capture-collmex.mjs",
+		"release": "n8n-node release",
+		"prepublishOnly": "n8n-node prerelease"
+	},
+	"files": [
+		"dist"
+	],
+	"publishConfig": {
+		"access": "public"
+	},
+	"n8n": {
+		"n8nNodesApiVersion": 1,
+		"strict": true,
+		"credentials": [
+			"dist/credentials/CollmexApi.credentials.js"
+		],
+		"nodes": [
+			"dist/nodes/Collmex/Collmex.node.js"
+		]
+	},
+	"devDependencies": {
+		"@n8n/node-cli": "*",
+		"eslint": "9.39.5",
+		"prettier": "3.9.9",
+		"release-it": "^21.0.0",
+		"typescript": "5.9.3",
+		"vitest": "^5.0.0"
+	},
+	"peerDependencies": {
+		"n8n-workflow": "*"
+	}
 }

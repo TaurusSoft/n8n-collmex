@@ -58,10 +58,7 @@ function harness(
 			throw new Error(`test harness: unexpected parameter "${name}"`);
 		},
 		helpers: {
-			async httpRequestWithAuthentication(
-				_credentialsType: string,
-				request: IHttpRequestOptions,
-			) {
+			async httpRequestWithAuthentication(_credentialsType: string, request: IHttpRequestOptions) {
 				// Mirrors what n8n does before sending: run the credential's
 				// authenticate step, so the assertions see the real wire format
 				// including the LOGIN record.
@@ -74,10 +71,7 @@ function harness(
 				return {
 					statusCode: 200,
 					headers: { 'content-type': 'text/csv; charset=ISO-8859-1' },
-					body: buffer.buffer.slice(
-						buffer.byteOffset,
-						buffer.byteOffset + buffer.byteLength,
-					),
+					body: buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength),
 				};
 			},
 		},

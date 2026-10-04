@@ -43,7 +43,7 @@ descriptions.
 
 The query filters were probed against the live API as well, which turned up two
 things now written into the option descriptions. The as-of date reports the
-stock at the *start* of the given day, so movements booked on that day are not
+stock at the _start_ of the given day, so movements booked on that day are not
 counted and passing today is not equivalent to leaving the option unset. And a
 product group number that does not exist makes Collmex reject the whole query
 with message 100102 instead of returning nothing.
@@ -158,6 +158,7 @@ while `@n8n/scan-community-package` passes clean, and the root cause turned out
 to be on n8n's side both times - a stale tag in the verification tool's release
 pipeline, and the portal validating an npm version that had already been
 unpublished. See:
+
 - https://community.n8n.io/t/creator-portal-reports-tests-failed-but-scan-community-package-passes-on-the-published-package/304437
 - https://community.n8n.io/t/verification-pre-check-fails-with-generic-some-tests-have-failed-but-scan-community-package-passes/304095
 

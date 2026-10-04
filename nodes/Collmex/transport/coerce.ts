@@ -28,9 +28,7 @@ const NULL_SENTINEL = '(NULL)';
 
 /** `2056,34` - Collmex writes decimals with a German comma. */
 function parseDecimal(value: string): number | undefined {
-	const normalised = value.includes(',')
-		? value.replace(/\./g, '').replace(',', '.')
-		: value;
+	const normalised = value.includes(',') ? value.replace(/\./g, '').replace(',', '.') : value;
 	const parsed = Number(normalised);
 
 	return Number.isFinite(parsed) ? parsed : undefined;

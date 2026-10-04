@@ -135,10 +135,7 @@ export function groupPositionsProperty(resource: string): INodeProperties {
 	};
 }
 
-export function optionsProperty(
-	resource: string,
-	options: INodeProperties[],
-): INodeProperties {
+export function optionsProperty(resource: string, options: INodeProperties[]): INodeProperties {
 	return {
 		displayName: 'Options',
 		name: 'options',

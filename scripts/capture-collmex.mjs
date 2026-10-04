@@ -151,7 +151,8 @@ function stockSuite(company) {
 		{
 			label: 'filter-stock-type-free',
 			query: stockGet({ stockType: '0' }),
-			expect: 'free stock only. A 0 must survive here, which is why the node writes field 6 directly instead of through setField',
+			expect:
+				'free stock only. A 0 must survive here, which is why the node writes field 6 directly instead of through setField',
 		},
 		{
 			label: 'filter-stock-type-blocked',
@@ -166,7 +167,8 @@ function stockSuite(company) {
 		{
 			label: 'filter-product-group-unknown',
 			query: stockGet({ productGroup: '999' }),
-			expect: 'an ERROR, message 100102 - an unknown group fails the whole query rather than returning nothing',
+			expect:
+				'an ERROR, message 100102 - an unknown group fails the whole query rather than returning nothing',
 			expectError: true,
 		},
 		{
@@ -187,7 +189,8 @@ function stockSuite(company) {
 		{
 			label: 'filter-as-of-today',
 			query: stockGet({ asOfDate: collmexDate(0) }),
-			expect: 'NOT the current stock. The as-of date reports the stock at the start of the day, so movements booked today are missing - passing today is not the same as omitting the field',
+			expect:
+				'NOT the current stock. The as-of date reports the stock at the start of the day, so movements booked today are missing - passing today is not the same as omitting the field',
 		},
 		{
 			label: 'filter-delta-first',
@@ -245,9 +248,7 @@ async function main() {
 	// Checked before the credentials, so a mistyped suite name does not first
 	// send you looking for an environment variable.
 	if (options.suite !== undefined && suites[options.suite] === undefined) {
-		throw new Error(
-			`Unknown suite "${options.suite}". Known: ${Object.keys(suites).join(', ')}`,
-		);
+		throw new Error(`Unknown suite "${options.suite}". Known: ${Object.keys(suites).join(', ')}`);
 	}
 
 	// A dry run needs no tenant, which is the point: it lets someone without

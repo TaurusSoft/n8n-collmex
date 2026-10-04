@@ -28,16 +28,16 @@ See the [installation guide](https://docs.n8n.io/integrations/community-nodes/in
 
 This node is **read-only**. It queries Collmex but never creates or changes anything.
 
-| Resource | Operations | Collmex query | Returns |
-| --- | --- | --- | --- |
-| Customer | Get, Get Many | `CUSTOMER_GET` | `CMXKND` |
-| Vendor | Get, Get Many | `VENDOR_GET` | `CMXLIF` |
-| Product | Get, Get Many | `PRODUCT_GET` | `CMXPRD` |
-| Quotation | Get, Get Many | `QUOTATION_GET` | `CMXQTN` |
-| Sales Order | Get, Get Many | `SALES_ORDER_GET` | `CMXORD-2` |
-| Invoice | Get, Get Many | `INVOICE_GET` | `CMXINV` |
-| Delivery | Get, Get Many | `DELIVERY_GET` | `CMXDLV` |
-| Stock | Get, Get Many | `STOCK_GET` | `CMXSTK` |
+| Resource           | Operations    | Collmex query         | Returns           |
+| ------------------ | ------------- | --------------------- | ----------------- |
+| Customer           | Get, Get Many | `CUSTOMER_GET`        | `CMXKND`          |
+| Vendor             | Get, Get Many | `VENDOR_GET`          | `CMXLIF`          |
+| Product            | Get, Get Many | `PRODUCT_GET`         | `CMXPRD`          |
+| Quotation          | Get, Get Many | `QUOTATION_GET`       | `CMXQTN`          |
+| Sales Order        | Get, Get Many | `SALES_ORDER_GET`     | `CMXORD-2`        |
+| Invoice            | Get, Get Many | `INVOICE_GET`         | `CMXINV`          |
+| Delivery           | Get, Get Many | `DELIVERY_GET`        | `CMXDLV`          |
+| Stock              | Get, Get Many | `STOCK_GET`           | `CMXSTK`          |
 | Stock Availability | Get, Get Many | `STOCK_AVAILABLE_GET` | `STOCK_AVAILABLE` |
 
 Each resource has an **Options** collection for the filters the corresponding Collmex query supports, such as date ranges, customer number, free text search and a company override.
@@ -46,7 +46,7 @@ Each resource has an **Options** collection for the filters the corresponding Co
 
 You need a Collmex account with API access, plus a dedicated API user.
 
-1. **Create an API user.** In Collmex go to *Administration → Users → New* and enable the API-only flag, labelled **"Nur fuer API"** in the German interface. This is mandatory: your normal interactive login is rejected by the API with `MESSAGE;E;101026`. Collmex does not charge for extra users carrying this flag.
+1. **Create an API user.** In Collmex go to _Administration → Users → New_ and enable the API-only flag, labelled **"Nur fuer API"** in the German interface. This is mandatory: your normal interactive login is rejected by the API with `MESSAGE;E;101026`. Collmex does not charge for extra users carrying this flag.
 2. **Look up your customer number.** This is your Collmex tenant number, the one that appears in the API endpoint URL.
 3. In n8n create **Collmex API** credentials and fill in:
    - **Customer Number** – your tenant number
@@ -85,7 +85,7 @@ Collmex has **no server-side paging**: every query returns the complete result s
 
 **Stock** returns the stored quantities: Collmex keeps one record per product, stock type and batch, so a single product can come back as several records. The **Stock Type** option restricts this to free, blocked or FBA stock — leaving it unset returns every type.
 
-**As Of Date** gives the stock as it stood at the *start* of that day. Movements booked on the day itself are not counted, so passing today's date is not the same as leaving the option unset — stock booked earlier today will be missing. Leave it unset for the current stock.
+**As Of Date** gives the stock as it stood at the _start_ of that day. Movements booked on the day itself are not counted, so passing today's date is not the same as leaving the option unset — stock booked earlier today will be missing. Leave it unset for the current stock.
 
 Note that a **Product Group** number that does not exist makes Collmex reject the whole query with message 100102, rather than returning an empty result.
 
@@ -125,9 +125,9 @@ Writing captures into the repository is optional; the fixtures in `test/fixtures
 
 ## Resources
 
-* [n8n community nodes documentation](https://docs.n8n.io/integrations/#community-nodes)
-* [Collmex API documentation](https://www.collmex.de/c.cmx?1005,1,help,api) (German)
-* [Collmex API overview](https://www.collmex.de/c.cmx?1005,1,help,api_ueberblick) (German)
+- [n8n community nodes documentation](https://docs.n8n.io/integrations/#community-nodes)
+- [Collmex API documentation](https://www.collmex.de/c.cmx?1005,1,help,api) (German)
+- [Collmex API overview](https://www.collmex.de/c.cmx?1005,1,help,api_ueberblick) (German)
 
 ## Version history
 
