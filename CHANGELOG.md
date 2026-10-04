@@ -30,8 +30,14 @@ Both layouts are pinned against a live capture taken on 2026-10-04, including
 the `(NULL)` availability of a service product and the derivation of the
 available quantity. Two things still rest on the documentation alone, because
 the test tenant cannot produce them: the FBA stock type, and batch numbers and
-descriptions. The query filters, including the as-of date, are tested against
-the documented field numbers but not yet against the live API.
+descriptions.
+
+The query filters were probed against the live API as well, which turned up two
+things now written into the option descriptions. The as-of date reports the
+stock at the *start* of the given day, so movements booked on that day are not
+counted and passing today is not equivalent to leaving the option unset. And a
+product group number that does not exist makes Collmex reject the whole query
+with message 100102 instead of returning nothing.
 
 The capture corrected one wrong assumption before release: the company number
 arrives as a bare number in `STOCK_AVAILABLE`, while `CMXSTK` sends it as a

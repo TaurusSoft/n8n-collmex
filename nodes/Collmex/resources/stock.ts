@@ -45,7 +45,8 @@ export const stockDescription: INodeProperties[] = [
 			name: 'asOfDate',
 			type: 'dateTime',
 			default: '',
-			description: 'Return the stock as it stood on this date instead of the current stock',
+			description:
+				'Return the stock as it stood at the start of this date instead of the current stock. Movements booked on the date itself are not counted, so passing today returns nothing for stock that was only booked today.',
 		},
 		companyIdOption,
 		onlyChangedOption,
@@ -54,7 +55,8 @@ export const stockDescription: INodeProperties[] = [
 			name: 'productGroup',
 			type: 'string',
 			default: '',
-			description: 'Internal number of the product group, as shown under Product > Product Group',
+			description:
+				'Internal number of the product group, as shown under Product > Product Group. A number that does not exist makes Collmex reject the whole query rather than return nothing.',
 		},
 		searchTextOption,
 		{

@@ -83,7 +83,11 @@ Collmex has **no server-side paging**: every query returns the complete result s
 
 ### Stock and availability
 
-**Stock** returns the stored quantities: Collmex keeps one record per product, stock type and batch, so a single product can come back as several records. The **Stock Type** option restricts this to free, blocked or FBA stock — leaving it unset returns every type. **As Of Date** gives the stock as it stood on that day instead of the current one.
+**Stock** returns the stored quantities: Collmex keeps one record per product, stock type and batch, so a single product can come back as several records. The **Stock Type** option restricts this to free, blocked or FBA stock — leaving it unset returns every type.
+
+**As Of Date** gives the stock as it stood at the *start* of that day. Movements booked on the day itself are not counted, so passing today's date is not the same as leaving the option unset — stock booked earlier today will be missing. Leave it unset for the current stock.
+
+Note that a **Product Group** number that does not exist makes Collmex reject the whole query with message 100102, rather than returning an empty result.
 
 **Stock Availability** is the derived figure, one record per product: the stock of the types marked as available, minus the demands (sales orders, deliveries) due today or earlier. Blocked stock does not count towards it, and the figure **goes negative** where demand exceeds stock — so treat it as a balance, not a quantity. Products that cannot hold stock at all, such as services, come back without an `availableQuantity`. A negative `replenishmentTime` means Collmex could not work the lead time out because the product has no valid vendor agreement.
 
