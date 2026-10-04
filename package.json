@@ -34,7 +34,8 @@
 		"prepublishOnly": "n8n-node prerelease"
 	},
 	"files": [
-		"dist"
+		"dist",
+		"!dist/**/*.tsbuildinfo"
 	],
 	"publishConfig": {
 		"access": "public"

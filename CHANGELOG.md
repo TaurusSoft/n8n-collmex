@@ -66,6 +66,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cannot hold any, such as services. This is honoured only on the `N` and `M`
   amount types, the ones Collmex documents it for — a text field holding the
   string keeps it, since there it could be content.
+- The published package no longer carries `dist/tsconfig.tsbuildinfo`, the
+  TypeScript build cache, which was 223 kB of the 434 kB it would have shipped.
+  It is excluded through `files` rather than moved out of `dist`: the cache has
+  to stay beside the output it describes, or deleting `dist` no longer
+  invalidates it and the next build quietly produces nothing.
 - The transport accepts hook, webhook and load-options contexts as well as
   execution contexts. That is what lets the trigger register its notification
   and fetch changed records, and the dropdowns fill themselves, all through the
