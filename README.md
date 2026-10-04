@@ -131,6 +131,16 @@ Quotations, sales orders, invoices and deliveries are returned by Collmex as **o
 
 Collmex has **no server-side paging**: every query returns the complete result set. The **Limit** option therefore only trims the output after the response has already been transferred. Use the filters in **Options** if you want Collmex itself to return less.
 
+### How many API calls a workflow costs
+
+Collmex allows **10,000 API calls a day** per customer number, at most **five at a time per user**, and asks that a new call waits for the previous one to finish. It also runs maintenance daily from 03:30 to 05:00. A dedicated API user per connected system is recommended.
+
+The node makes **one call per input item**, and each dropdown makes one more whenever you open the node. That matters most when a workflow feeds many items into **Get**: a hundred items are a hundred calls.
+
+**Get Many costs one call regardless of how many records come back**, so where a filter can express what you want, it is far cheaper than looking records up one at a time. Fetching every invoice of a customer with one **Get Many** beats feeding a hundred invoice numbers into **Get**.
+
+The node does not bundle several items into one request. Collmex runs each exchange as a single database transaction, so one bad query rolls the whole thing back — bundling would make one malformed item fail every other item in the batch, and n8n could no longer say which one was at fault.
+
 ### Stock and availability
 
 **Stock** returns the stored quantities: Collmex keeps one record per product, stock type and batch, so a single product can come back as several records. The **Stock Type** option restricts this to free, blocked or FBA stock — leaving it unset returns every type.
