@@ -15,6 +15,17 @@ export type CollmexFieldType = 'C' | 'I' | 'N' | 'M' | 'D';
  */
 const CODED_ENUM = /^(-?\d+)\s+(\S.*)$/;
 
+/**
+ * Where an amount cannot exist at all Collmex writes this constant instead of
+ * leaving the field empty - the available stock of a service product, which
+ * cannot hold stock, is the documented case.
+ *
+ * It is only honoured on the `N` and `M` amount types, deliberately: those are
+ * the ones Collmex documents it for, and reading it as "no value" everywhere
+ * would mean a text field could never legitimately contain the string.
+ */
+const NULL_SENTINEL = '(NULL)';
+
 /** `2056,34` - Collmex writes decimals with a German comma. */
 function parseDecimal(value: string): number | undefined {
 	const normalised = value.includes(',')
@@ -83,6 +94,11 @@ export function assignField(
 
 		case 'N':
 		case 'M':
+			// Only the amount types are read as "no value": that is where
+			// Collmex documents the constant and where it was observed. A text
+			// field holding `(NULL)` is kept, because there it could be content.
+			if (value === NULL_SENTINEL) return;
+
 			target[name] = parseDecimal(value) ?? value;
 			return;
 

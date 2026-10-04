@@ -16,6 +16,8 @@ import {
 	invoiceGetResponse,
 	loginErrorResponse,
 	productGetResponse,
+	stockAvailableGetResponse,
+	stockGetResponse,
 	vendorGetResponse,
 } from './fixtures';
 
@@ -349,6 +351,122 @@ describe('error handling', () => {
 		expect(items).toHaveLength(1);
 		expect(items[0].json.error).toContain('Nur für API');
 		expect(items[0].pairedItem).toEqual({ item: 0 });
+	});
+});
+
+describe('stock', () => {
+	it('queries and maps many stock records', async () => {
+		const { items, sent } = await run(
+			{ resource: 'stock', operation: 'getAll', returnAll: true, options: {} },
+			stockGetResponse,
+		);
+
+		expect(sent).toEqual([['STOCK_GET', '1', '', '', '', '', '', '', '']]);
+		// Both records are the same product, one per stock type.
+		expect(items).toHaveLength(2);
+		expect(items[0].json.quantity).toBe(50);
+		expect(items[0].json.stockTypeLabel).toBe('Frei');
+		expect(items[1].json.quantity).toBe(25);
+		expect(items[1].json.stockTypeLabel).toBe('Gesperrt');
+		expect(items[0].json.storageLocation).toBe('L-K56');
+		expect(items[0].pairedItem).toEqual({ item: 0 });
+	});
+
+	it('puts the product number into field 3 for a single get', async () => {
+		const { sent } = await run(
+			{ resource: 'stock', operation: 'get', productId: '1', options: {} },
+			stockGetResponse,
+		);
+
+		expect(sent[0][2]).toBe('1');
+	});
+
+	it('maps options onto the documented field numbers', async () => {
+		const { sent } = await run(
+			{
+				resource: 'stock',
+				operation: 'getAll',
+				returnAll: true,
+				options: {
+					companyId: 2,
+					productGroup: '7',
+					searchText: 'Kabel',
+					stockType: 1,
+					onlyChanged: true,
+					systemName: 'n8n',
+					asOfDate: '2026-09-30T00:00:00.000Z',
+				},
+			},
+			stockGetResponse,
+		);
+
+		expect(sent[0]).toEqual([
+			'STOCK_GET',
+			'2', // 2 company
+			'', // 3 product number, unset for getAll
+			'7', // 4 product group
+			'Kabel', // 5 free text
+			'1', // 6 stock type
+			'1', // 7 only changed
+			'n8n', // 8 system name
+			'20260930', // 9 as of date
+		]);
+	});
+
+	it('sends a stock type of zero instead of dropping it', async () => {
+		// Blank means every type, 0 means free stock only - the two must not
+		// collapse into one another.
+		const { sent } = await run(
+			{ resource: 'stock', operation: 'getAll', returnAll: true, options: { stockType: 0 } },
+			stockGetResponse,
+		);
+
+		expect(sent[0][5]).toBe('0');
+	});
+});
+
+describe('stock availability', () => {
+	it('queries and maps availabilities', async () => {
+		const { items, sent } = await run(
+			{ resource: 'stockAvailability', operation: 'getAll', returnAll: true, options: {} },
+			stockAvailableGetResponse,
+		);
+
+		expect(sent).toEqual([['STOCK_AVAILABLE_GET', '1', '', '', '']]);
+		expect(items).toHaveLength(3);
+		// 50 units of free stock less a demand of 13; the 25 blocked units do
+		// not count towards availability.
+		expect(items[0].json.availableQuantity).toBe(37);
+		expect(items[0].json.replenishmentTime).toBe(12);
+		// No stock against a demand of 24, so availability goes negative.
+		expect(items[1].json.availableQuantity).toBe(-24);
+		expect(items[1].json.replenishmentTime).toBe(-1);
+	});
+
+	it('omits the availability of a product that cannot hold stock', async () => {
+		const { items } = await run(
+			{ resource: 'stockAvailability', operation: 'getAll', returnAll: true, options: {} },
+			stockAvailableGetResponse,
+		);
+
+		// Product 3 is a service: Collmex sends (NULL) in place of a quantity.
+		expect(items[2].json.productId).toBe('3');
+		expect(items[2].json).not.toHaveProperty('availableQuantity');
+		expect(items[2].json.unit).toBe('HR');
+	});
+
+	it('maps options onto the documented field numbers', async () => {
+		const { sent } = await run(
+			{
+				resource: 'stockAvailability',
+				operation: 'get',
+				productId: '1',
+				options: { companyId: 2, onlyChanged: true, systemName: 'n8n' },
+			},
+			stockAvailableGetResponse,
+		);
+
+		expect(sent[0]).toEqual(['STOCK_AVAILABLE_GET', '2', '1', '1', 'n8n']);
 	});
 });
 

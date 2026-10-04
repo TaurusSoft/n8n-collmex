@@ -19,7 +19,7 @@ export class Collmex implements INodeType {
 		group: ['input'],
 		version: 1,
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
-		description: 'Read customers, vendors and sales documents from Collmex',
+		description: 'Read customers, vendors, products, stock and sales documents from Collmex',
 		defaults: {
 			name: 'Collmex',
 		},
@@ -40,6 +40,8 @@ export class Collmex implements INodeType {
 					{ name: 'Product', value: 'product' },
 					{ name: 'Quotation', value: 'quotation' },
 					{ name: 'Sales Order', value: 'salesOrder' },
+					{ name: 'Stock', value: 'stock' },
+					{ name: 'Stock Availability', value: 'stockAvailability' },
 					{ name: 'Vendor', value: 'vendor' },
 				],
 				default: 'customer',

@@ -9,6 +9,8 @@ import {
 	productGetResponse,
 	quotationGetResponse,
 	salesOrderGetResponse,
+	stockAvailableGetResponse,
+	stockGetResponse,
 	vendorGetResponse,
 } from './fixtures';
 
@@ -23,6 +25,8 @@ describe('record layouts', () => {
 		['CMXINV', 96],
 		['CMXPRD', 67],
 		['CMXDLV', 72],
+		['CMXSTK', 11],
+		['STOCK_AVAILABLE', 6],
 	])('%s has %i documented fields', (type, count) => {
 		expect(recordLayouts[type]).toHaveLength(count);
 	});
@@ -424,5 +428,98 @@ describe('groupDocuments', () => {
 
 	it('returns nothing for an empty result', () => {
 		expect(groupDocuments(recordLayouts.CMXINV, [], 1)).toEqual([]);
+	});
+});
+
+describe('stock records', () => {
+	it('maps a stock record onto the expected names', () => {
+		const row = parseCsv(stockGetResponse).find((candidate) => candidate[0] === 'CMXSTK');
+		expect(row).toHaveLength(11);
+
+		expect(mapRecord(recordLayouts.CMXSTK, row as string[])).toEqual({
+			productId: '1',
+			companyId: 1,
+			companyIdLabel: 'Max Mustermann',
+			quantity: 50,
+			stockType: 0,
+			stockTypeLabel: 'Frei',
+			batchNumber: 0,
+			// Product costs times quantity, written with the German comma.
+			value: 39.5,
+			productDescription: 'Kabel USB 2.0 grau',
+			storageLocation: 'L-K56',
+			baseUnit: 'PCE',
+		});
+	});
+
+	it('returns one record per stock type of the same product', () => {
+		const rows = parseCsv(stockGetResponse).filter((candidate) => candidate[0] === 'CMXSTK');
+		const mapped = rows.map((row) => mapRecord(recordLayouts.CMXSTK, row));
+
+		expect(mapped.map((record) => record.productId)).toEqual(['1', '1']);
+		expect(mapped.map((record) => record.stockTypeLabel)).toEqual(['Frei', 'Gesperrt']);
+		expect(mapped.map((record) => record.quantity)).toEqual([50, 25]);
+		expect(mapped.map((record) => record.value)).toEqual([39.5, 19.75]);
+	});
+
+	it('maps an availability record onto the expected names', () => {
+		const rows = parseCsv(stockAvailableGetResponse).filter(
+			(candidate) => candidate[0] === 'STOCK_AVAILABLE',
+		);
+		expect(rows[0]).toHaveLength(6);
+
+		// The company arrives bare here, so no label is split off - CMXSTK
+		// sends the same field as a coded enumeration. The record types differ.
+		expect(mapRecord(recordLayouts.STOCK_AVAILABLE, rows[0])).toEqual({
+			productId: '1',
+			companyId: 1,
+			availableQuantity: 37,
+			unit: 'PCE',
+			replenishmentTime: 12,
+		});
+	});
+
+	it('keeps a negative availability', () => {
+		// Product 2 holds no stock against a demand of 24. Availability is a
+		// derived figure, so it legitimately goes below zero.
+		const rows = parseCsv(stockAvailableGetResponse).filter(
+			(candidate) => candidate[0] === 'STOCK_AVAILABLE',
+		);
+
+		expect(mapRecord(recordLayouts.STOCK_AVAILABLE, rows[1])).toEqual({
+			productId: '2',
+			companyId: 1,
+			availableQuantity: -24,
+			unit: 'PCE',
+			replenishmentTime: -1,
+		});
+	});
+
+	it('drops the (NULL) quantity of a product that cannot hold stock', () => {
+		// Product 3 is a service. Everything else about the record is still
+		// data, so only the quantity goes missing.
+		const rows = parseCsv(stockAvailableGetResponse).filter(
+			(candidate) => candidate[0] === 'STOCK_AVAILABLE',
+		);
+
+		const mapped = mapRecord(recordLayouts.STOCK_AVAILABLE, rows[2]);
+
+		expect(mapped).not.toHaveProperty('availableQuantity');
+		expect(mapped).toEqual({
+			productId: '3',
+			companyId: 1,
+			unit: 'HR',
+			replenishmentTime: 0,
+		});
+	});
+
+	it('keeps a lead time of zero rather than dropping it', () => {
+		// 0 is a value here, not an absence: assignField only skips empty
+		// fields, so the service product keeps its zero.
+		const rows = parseCsv(stockAvailableGetResponse).filter(
+			(candidate) => candidate[0] === 'STOCK_AVAILABLE',
+		);
+
+		expect(mapRecord(recordLayouts.STOCK_AVAILABLE, rows[2]).replenishmentTime).toBe(0);
 	});
 });

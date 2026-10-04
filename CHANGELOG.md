@@ -5,6 +5,54 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0]
+
+### Added
+
+- **Stock** resource with `Get` and `Get Many`, querying `STOCK_GET` and
+  mapping the 11 fields of `CMXSTK`. Filters: product group, stock type, an
+  as-of date for historical stock, free text search, plus the usual company
+  override and incremental sync.
+- **Stock Availability** resource with `Get` and `Get Many`, querying
+  `STOCK_AVAILABLE_GET` and mapping the 6 fields of `STOCK_AVAILABLE`. This is
+  the available quantity Collmex derives from stock minus due demands.
+- `scripts/capture-collmex.mjs`, the script the fixtures were captured with. It
+  queries a live tenant and probes one filter per documented field number,
+  printing what each query is expected to return, so a record layout can be
+  re-checked rather than taken on trust. `--dry-run` prints the query rows
+  without sending them and needs no credentials, which is enough to read the
+  field positions. Plain Node, no dependencies, and not part of the published
+  package.
+
+### Changed
+
+- The `(NULL)` constant Collmex writes where an amount cannot exist is now
+  treated like an empty field and left out of the output, instead of arriving
+  as the string `(NULL)`. It appears on the available stock of products that
+  cannot hold any, such as services. This is honoured only on the `N` and `M`
+  amount types, the ones Collmex documents it for — a text field holding the
+  string keeps it, since there it could be content.
+
+### Note
+
+Both layouts are pinned against a live capture taken on 2026-10-04, including
+the `(NULL)` availability of a service product and the derivation of the
+available quantity. Two things still rest on the documentation alone, because
+the test tenant cannot produce them: the FBA stock type, and batch numbers and
+descriptions.
+
+The query filters were probed against the live API as well, which turned up two
+things now written into the option descriptions. The as-of date reports the
+stock at the *start* of the given day, so movements booked on that day are not
+counted and passing today is not equivalent to leaving the option unset. And a
+product group number that does not exist makes Collmex reject the whole query
+with message 100102 instead of returning nothing.
+
+The capture corrected one wrong assumption before release: the company number
+arrives as a bare number in `STOCK_AVAILABLE`, while `CMXSTK` sends it as a
+coded enumeration with the company name behind it. The two record types
+genuinely differ.
+
 ## [0.2.1]
 
 ### Fixed

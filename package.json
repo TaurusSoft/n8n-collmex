@@ -1,6 +1,6 @@
 {
   "name": "@taurussoftware/n8n-nodes-collmex",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "n8n community node to read customers, vendors, products, quotations, sales orders, invoices and deliveries from the Collmex API",
   "license": "MIT",
   "homepage": "https://github.com/TaurusSoft/n8n-collmex#readme",
@@ -27,6 +27,7 @@
     "lint:fix": "n8n-node lint --fix",
     "test": "vitest run",
     "test:watch": "vitest",
+    "capture": "node scripts/capture-collmex.mjs",
     "release": "n8n-node release",
     "prepublishOnly": "n8n-node prerelease"
   },

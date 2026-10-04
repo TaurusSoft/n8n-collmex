@@ -37,6 +37,8 @@ This node is **read-only**. It queries Collmex but never creates or changes anyt
 | Sales Order | Get, Get Many | `SALES_ORDER_GET` | `CMXORD-2` |
 | Invoice | Get, Get Many | `INVOICE_GET` | `CMXINV` |
 | Delivery | Get, Get Many | `DELIVERY_GET` | `CMXDLV` |
+| Stock | Get, Get Many | `STOCK_GET` | `CMXSTK` |
+| Stock Availability | Get, Get Many | `STOCK_AVAILABLE_GET` | `STOCK_AVAILABLE` |
 
 Each resource has an **Options** collection for the filters the corresponding Collmex query supports, such as date ranges, customer number, free text search and a company override.
 
@@ -79,9 +81,47 @@ Quotations, sales orders, invoices and deliveries are returned by Collmex as **o
 
 Collmex has **no server-side paging**: every query returns the complete result set. The **Limit** option therefore only trims the output after the response has already been transferred. Use the filters in **Options** if you want Collmex itself to return less.
 
+### Stock and availability
+
+**Stock** returns the stored quantities: Collmex keeps one record per product, stock type and batch, so a single product can come back as several records. The **Stock Type** option restricts this to free, blocked or FBA stock — leaving it unset returns every type.
+
+**As Of Date** gives the stock as it stood at the *start* of that day. Movements booked on the day itself are not counted, so passing today's date is not the same as leaving the option unset — stock booked earlier today will be missing. Leave it unset for the current stock.
+
+Note that a **Product Group** number that does not exist makes Collmex reject the whole query with message 100102, rather than returning an empty result.
+
+**Stock Availability** is the derived figure, one record per product: the stock of the types marked as available, minus the demands (sales orders, deliveries) due today or earlier. Blocked stock does not count towards it, and the figure **goes negative** where demand exceeds stock — so treat it as a balance, not a quantity. Products that cannot hold stock at all, such as services, come back without an `availableQuantity`. A negative `replenishmentTime` means Collmex could not work the lead time out because the product has no valid vendor agreement.
+
+Note that the two resources report the company number differently: `CMXSTK` sends it as a coded enumeration, so **Stock** items carry both `companyId` and `companyIdLabel`, while **Stock Availability** items carry only `companyId`.
+
 ### Incremental sync
 
 Most queries support **Only Changed** together with **System Name**. Collmex stores the timestamp of the last query per system name, so a scheduled workflow using a stable system name (for example `n8n`) will only receive records created or changed since its previous run.
+
+## Verifying against a live tenant
+
+Every record layout in this package is pinned against a response captured from a real Collmex tenant, not against the documentation. That matters because a wrong field offset silently shifts every following value onto the wrong name, and the documentation has been wrong before — `CMXLIF` returns 42 fields where it lists 41.
+
+`scripts/capture-collmex.mjs` is how those captures are taken, so a layout can be re-checked rather than taken on trust. It needs no dependencies and writes nothing to the tenant.
+
+```bash
+export COLLMEX_CUSTOMER=123456   # customer number, part of the endpoint URL
+export COLLMEX_USER=apiuser      # an API user, with 'Nur für API' set
+export COLLMEX_PASSWORD=...
+
+npm run capture -- --suite stock                       # query and probe
+npm run capture -- --suite stock --out test/captures   # also write the responses
+npm run capture -- 'STOCK_GET;1;;;;;;;'                # one raw query row
+```
+
+Without a tenant at hand, `--dry-run` prints the query rows and sends nothing, so the field positions the node builds can be read without credentials:
+
+```bash
+npm run capture -- --suite stock --dry-run
+```
+
+A suite runs the queries behind a resource's fixtures plus one probe per filter, printing what each one is expected to return next to the result. It exits non-zero if a query comes back with an error record, which Collmex reports with HTTP 200 — so the exit code reflects the body, not the status line.
+
+Writing captures into the repository is optional; the fixtures in `test/fixtures.ts` carry the responses they were built from and say whether each one was captured or constructed.
 
 ## Resources
 
@@ -90,6 +130,16 @@ Most queries support **Only Changed** together with **System Name**. Collmex sto
 * [Collmex API overview](https://www.collmex.de/c.cmx?1005,1,help,api_ueberblick) (German)
 
 ## Version history
+
+### 0.3.0
+
+Adds the **Stock** and **Stock Availability** resources, covering the stored
+quantities and the availability Collmex derives from them.
+
+The `(NULL)` constant Collmex writes where a value cannot exist is now left out
+of the output instead of arriving as a string. Both layouts are pinned against
+a live capture; only the FBA stock type and the batch fields rest on the
+documentation alone, for want of a test tenant that has them.
 
 ### 0.2.0
 
