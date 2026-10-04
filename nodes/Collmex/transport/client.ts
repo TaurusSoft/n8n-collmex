@@ -1,6 +1,7 @@
 import type {
 	IExecuteFunctions,
 	IHookFunctions,
+	ILoadOptionsFunctions,
 	IWebhookFunctions,
 	JsonObject,
 } from 'n8n-workflow';
@@ -30,13 +31,15 @@ export const MESSAGE_RECORD = 'MESSAGE';
 /**
  * The contexts this transport can be called from.
  *
- * The node executes from `IExecuteFunctions`, while the trigger registers its
+ * The node executes from `IExecuteFunctions`, the trigger registers its
  * notification from `IHookFunctions` and fetches the changed records from
- * `IWebhookFunctions`. All three are members of `IAllExecuteFunctions`, which
- * is what `httpRequestWithAuthentication` is typed against, so one request
- * function serves all of them.
+ * `IWebhookFunctions`, and the dropdowns fill themselves from
+ * `ILoadOptionsFunctions`. All four are members of `IAllExecuteFunctions`,
+ * which is what `httpRequestWithAuthentication` is typed against, so one
+ * request function serves all of them.
  */
-export type CollmexContext = IExecuteFunctions | IHookFunctions | IWebhookFunctions;
+export type CollmexContext =
+	IExecuteFunctions | IHookFunctions | ILoadOptionsFunctions | IWebhookFunctions;
 
 /**
  * Serialises the query records; the LOGIN line is added by `authenticate`.

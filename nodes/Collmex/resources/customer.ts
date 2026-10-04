@@ -2,6 +2,9 @@ import type { IDataObject, IExecuteFunctions, INodeProperties } from 'n8n-workfl
 
 import type { ResourceHandler } from './shared';
 import {
+	addressGroupOption,
+	brokerOption,
+	priceGroupOption,
 	companyIdOption,
 	dueForFollowUpOption,
 	onlyChangedOption,
@@ -34,20 +37,10 @@ export const customerDescription: INodeProperties[] = [
 	},
 	...paginationProperties(RESOURCE),
 	optionsProperty(RESOURCE, [
-		{
-			displayName: 'Address Group',
-			name: 'addressGroup',
-			type: 'string',
-			default: '',
-			description: 'Internal number of the address group to filter by',
-		},
-		{
-			displayName: 'Broker',
-			name: 'broker',
-			type: 'string',
-			default: '',
-			description: 'Employee number of the broker to filter by',
-		},
+		addressGroupOption('Address group to filter by'),
+
+		brokerOption('Employee acting as broker, to filter by'),
+
 		companyIdOption,
 		{
 			displayName: 'Discount Group',
@@ -65,13 +58,8 @@ export const customerDescription: INodeProperties[] = [
 			description: 'Whether to include inactive customers as well as active ones',
 		},
 		onlyChangedOption,
-		{
-			displayName: 'Price Group',
-			name: 'priceGroup',
-			type: 'string',
-			default: '',
-			description: 'Internal number of the price group to filter by',
-		},
+		priceGroupOption('Price group to filter by. Only active groups are listed'),
+
 		searchTextOption,
 		systemNameOption,
 		zipOrCountryOption,

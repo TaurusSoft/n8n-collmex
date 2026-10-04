@@ -42,6 +42,16 @@ This node is **read-only**. It queries Collmex but never creates or changes anyt
 
 Each resource has an **Options** collection for the filters the corresponding Collmex query supports, such as date ranges, customer number, free text search and a company override.
 
+### Group filters are dropdowns
+
+**Product Group**, **Price Group**, **Address Group** and **Broker** are filled from Collmex rather than typed as numbers. Each one is a query made when you open the node, so the lists cost an API call apiece against the daily limit — they are short lists, and none of them refresh on a timer.
+
+This also removes a trap: an unknown product group number makes Collmex reject the whole query with message 100102 instead of returning nothing, and a list you pick from cannot produce one.
+
+An expression can be used in place of a selection where a workflow has to compute the number.
+
+**Discount Group** stays a free-text number: Collmex has no query that lists discount groups.
+
 ## Trigger
 
 The **Collmex Trigger** node starts a workflow when Collmex reports that data changed. Collmex calls this push mechanism API notifications, and recommends it over polling.
@@ -172,6 +182,11 @@ Writing captures into the repository is optional; the fixtures in `test/fixtures
 ## Version history
 
 ### 0.3.0
+
+Turns the **Product Group**, **Price Group**, **Address Group** and **Broker**
+filters into dropdowns filled from Collmex, so the internal numbers no longer
+have to be known. The stored value is still a plain string, so nothing about
+them changes for an existing workflow.
 
 Adds the **Stock** and **Stock Availability** resources, covering the stored
 quantities and the availability Collmex derives from them, and the **Collmex

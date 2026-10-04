@@ -202,6 +202,58 @@ export const companyIdOption: INodeProperties = {
 		'Internal number of the company, as shown under Administration > Company. Overrides the default set in the credentials.',
 };
 
+/**
+ * The group filters, offered as dropdowns filled from Collmex rather than as
+ * free-text numbers.
+ *
+ * They stay `options` rather than `resourceLocator` deliberately: the stored
+ * value remains a plain string, so existing workflows keep working and the
+ * node needs no new type version. The value is text for the same reason, and
+ * because the standard price group is number `0`, which has to survive.
+ *
+ * An expression can still be used in place of a selection, which is the way
+ * out when a workflow has to compute the number.
+ */
+/** How a dropdown tells the user it will also take an expression. */
+const OR_EXPRESSION =
+	'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>';
+
+function groupOption(
+	displayName: string,
+	name: string,
+	loadOptionsMethod: string,
+	purpose: string,
+): INodeProperties {
+	return {
+		displayName,
+		name,
+		type: 'options',
+		typeOptions: { loadOptionsMethod },
+		default: '',
+		description: `${purpose}. ${OR_EXPRESSION}.`,
+	};
+}
+
+// The wiring is shared; the wording is not, because the same group means
+// different things per query - a filter on customers, the price to return on
+// products.
+
+export function productGroupOption(purpose: string): INodeProperties {
+	return groupOption('Product Group Name or ID', 'productGroup', 'getProductGroups', purpose);
+}
+
+export function priceGroupOption(purpose: string): INodeProperties {
+	return groupOption('Price Group Name or ID', 'priceGroup', 'getPriceGroups', purpose);
+}
+
+export function addressGroupOption(purpose: string): INodeProperties {
+	return groupOption('Address Group Name or ID', 'addressGroup', 'getAddressGroups', purpose);
+}
+
+export function brokerOption(purpose: string): INodeProperties {
+	return groupOption('Broker Name or ID', 'broker', 'getEmployees', purpose);
+}
+
 export const customerIdOption: INodeProperties = {
 	displayName: 'Customer ID',
 	name: 'customerId',
