@@ -9,6 +9,8 @@ import {
 	productGetResponse,
 	quotationGetResponse,
 	salesOrderGetResponse,
+	stockAvailableGetResponse,
+	stockGetResponse,
 	vendorGetResponse,
 } from './fixtures';
 
@@ -23,6 +25,8 @@ describe('record layouts', () => {
 		['CMXINV', 96],
 		['CMXPRD', 67],
 		['CMXDLV', 72],
+		['CMXSTK', 11],
+		['STOCK_AVAILABLE', 6],
 	])('%s has %i documented fields', (type, count) => {
 		expect(recordLayouts[type]).toHaveLength(count);
 	});
@@ -424,5 +428,54 @@ describe('groupDocuments', () => {
 
 	it('returns nothing for an empty result', () => {
 		expect(groupDocuments(recordLayouts.CMXINV, [], 1)).toEqual([]);
+	});
+});
+
+describe('stock records', () => {
+	it('maps a stock record onto the expected names', () => {
+		const row = parseCsv(stockGetResponse).find((candidate) => candidate[0] === 'CMXSTK');
+		expect(row).toHaveLength(11);
+
+		expect(mapRecord(recordLayouts.CMXSTK, row as string[])).toEqual({
+			productId: '1',
+			companyId: 1,
+			companyIdLabel: 'Max Mustermann',
+			quantity: 42,
+			stockType: 0,
+			stockTypeLabel: 'Frei',
+			value: 126,
+			productDescription: 'Kabel USB 2.0 grau',
+			storageLocation: 'Lager A',
+			baseUnit: 'PCE',
+		});
+	});
+
+	it('maps an availability record onto the expected names', () => {
+		const rows = parseCsv(stockAvailableGetResponse).filter(
+			(candidate) => candidate[0] === 'STOCK_AVAILABLE',
+		);
+		expect(rows[0]).toHaveLength(6);
+
+		expect(mapRecord(recordLayouts.STOCK_AVAILABLE, rows[0])).toEqual({
+			productId: '1',
+			companyId: 1,
+			companyIdLabel: 'Max Mustermann',
+			availableQuantity: 17,
+			unit: 'PCE',
+			replenishmentTime: 5,
+		});
+	});
+
+	it('drops the (NULL) quantity of a product that cannot hold stock', () => {
+		const rows = parseCsv(stockAvailableGetResponse).filter(
+			(candidate) => candidate[0] === 'STOCK_AVAILABLE',
+		);
+
+		const mapped = mapRecord(recordLayouts.STOCK_AVAILABLE, rows[1]);
+
+		expect(mapped).not.toHaveProperty('availableQuantity');
+		// The negative lead time is kept: it is Collmex saying it could not
+		// work one out, which is different from the field being absent.
+		expect(mapped.replenishmentTime).toBe(-1);
 	});
 });

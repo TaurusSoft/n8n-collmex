@@ -5,6 +5,31 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0]
+
+### Added
+
+- **Stock** resource with `Get` and `Get Many`, querying `STOCK_GET` and
+  mapping the 11 fields of `CMXSTK`. Filters: product group, stock type, an
+  as-of date for historical stock, free text search, plus the usual company
+  override and incremental sync.
+- **Stock Availability** resource with `Get` and `Get Many`, querying
+  `STOCK_AVAILABLE_GET` and mapping the 6 fields of `STOCK_AVAILABLE`. This is
+  the available quantity Collmex derives from stock minus due demands.
+
+### Changed
+
+- The `(NULL)` constant Collmex writes where a value cannot exist is now
+  treated like an empty field and left out of the output, instead of arriving
+  as the string `(NULL)`. It appears on the available stock of products that
+  cannot hold any, such as services.
+
+### Note
+
+The record layouts of both new resources come from the documentation. The test
+account carries no stock, so unlike the other resources they are not yet
+pinned against a live capture.
+
 ## [0.2.1]
 
 ### Fixed

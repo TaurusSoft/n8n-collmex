@@ -15,6 +15,13 @@ export type CollmexFieldType = 'C' | 'I' | 'N' | 'M' | 'D';
  */
 const CODED_ENUM = /^(-?\d+)\s+(\S.*)$/;
 
+/**
+ * Where a value does not exist at all Collmex writes this constant instead of
+ * leaving the field empty - the available stock of a service product, for
+ * instance. It is a marker, not data, so it is treated like an empty field.
+ */
+const NULL_SENTINEL = '(NULL)';
+
 /** `2056,34` - Collmex writes decimals with a German comma. */
 function parseDecimal(value: string): number | undefined {
 	const normalised = value.includes(',')
@@ -46,8 +53,9 @@ function parseDate(value: string): string {
 
 /**
  * Writes one CSV field onto `target` under `name`, converted to its Collmex
- * type. Empty fields are omitted entirely rather than emitted as `null`, so
- * the output only carries what Collmex actually filled in.
+ * type. Empty fields - and the `(NULL)` constant, which means the same thing -
+ * are omitted entirely rather than emitted as `null`, so the output only
+ * carries what Collmex actually filled in.
  *
  * For `I` fields carrying a label the label is emitted alongside as
  * `<name>Label`.
@@ -59,7 +67,7 @@ export function assignField(
 	type: CollmexFieldType,
 ): void {
 	const value = raw.trim();
-	if (value === '') return;
+	if (value === '' || value === NULL_SENTINEL) return;
 
 	switch (type) {
 		case 'C':

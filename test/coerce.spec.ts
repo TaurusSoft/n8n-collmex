@@ -18,6 +18,14 @@ describe('assignField', () => {
 		expect(coerce('', 'D')).toEqual({});
 	});
 
+	it('treats the (NULL) constant as an absent field', () => {
+		// STOCK_AVAILABLE reports the availability of a service product this
+		// way. Parsed as a decimal it would land in the output as the string
+		// '(NULL)', which is worse than saying nothing.
+		expect(coerce('(NULL)', 'N')).toEqual({});
+		expect(coerce('(NULL)', 'C')).toEqual({});
+	});
+
 	describe('text', () => {
 		it('preserves leading zeroes', () => {
 			// A postal code parsed as a number would turn 01069 into 1069.

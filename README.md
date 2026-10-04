@@ -37,6 +37,8 @@ This node is **read-only**. It queries Collmex but never creates or changes anyt
 | Sales Order | Get, Get Many | `SALES_ORDER_GET` | `CMXORD-2` |
 | Invoice | Get, Get Many | `INVOICE_GET` | `CMXINV` |
 | Delivery | Get, Get Many | `DELIVERY_GET` | `CMXDLV` |
+| Stock | Get, Get Many | `STOCK_GET` | `CMXSTK` |
+| Stock Availability | Get, Get Many | `STOCK_AVAILABLE_GET` | `STOCK_AVAILABLE` |
 
 Each resource has an **Options** collection for the filters the corresponding Collmex query supports, such as date ranges, customer number, free text search and a company override.
 
@@ -79,6 +81,12 @@ Quotations, sales orders, invoices and deliveries are returned by Collmex as **o
 
 Collmex has **no server-side paging**: every query returns the complete result set. The **Limit** option therefore only trims the output after the response has already been transferred. Use the filters in **Options** if you want Collmex itself to return less.
 
+### Stock and availability
+
+**Stock** returns the stored quantities: Collmex keeps one record per product, stock type and batch, so a single product can come back as several records. The **Stock Type** option restricts this to free, blocked or FBA stock — leaving it unset returns every type. **As Of Date** gives the stock as it stood on that day instead of the current one.
+
+**Stock Availability** is the derived figure, one record per product: the stock of the types marked as available, minus the demands (sales orders, deliveries) due today or earlier. Products that cannot hold stock at all, such as services, come back without an `availableQuantity`. A negative `replenishmentTime` means Collmex could not work the lead time out because the product has no valid vendor agreement.
+
 ### Incremental sync
 
 Most queries support **Only Changed** together with **System Name**. Collmex stores the timestamp of the last query per system name, so a scheduled workflow using a stable system name (for example `n8n`) will only receive records created or changed since its previous run.
@@ -90,6 +98,16 @@ Most queries support **Only Changed** together with **System Name**. Collmex sto
 * [Collmex API overview](https://www.collmex.de/c.cmx?1005,1,help,api_ueberblick) (German)
 
 ## Version history
+
+### 0.3.0
+
+Adds the **Stock** and **Stock Availability** resources, covering the stored
+quantities and the availability Collmex derives from them.
+
+The `(NULL)` constant Collmex writes where a value cannot exist is now left out
+of the output instead of arriving as a string. The layouts of both new
+resources come from the documentation — the test account carries no stock, so
+they are not yet pinned against a live capture.
 
 ### 0.2.0
 

@@ -142,3 +142,32 @@ export const invoiceGetResponse = [
 	"MESSAGE;S;204020;Datenübertragung erfolgreich. Es wurden 1 Datensätze verarbeitet.",
 	"",
 ].join("\r\n");
+
+/**
+ * Stock, and UNLIKE everything above: built from the Collmex documentation,
+ * not captured from a tenant - the test account holds no stock to query. It
+ * pins the field order and the parsing of the `(NULL)` constant, but it is no
+ * evidence of what the wire looks like. Replace it with a real capture once
+ * one is available.
+ */
+export const stockGetResponse = [
+	'CMXSTK;1;1 Max Mustermann;42,000;0 Frei;;126,00;;Kabel USB 2.0 grau;Lager A;PCE',
+	'CMXSTK;1;1 Max Mustermann;8,000;1 Gesperrt;;24,00;;Kabel USB 2.0 grau;Lager A;PCE',
+	'MESSAGE;S;208013;STOCK_GET hat 2 Datensätze zurückgegeben',
+	'MESSAGE;S;204020;Datenübertragung erfolgreich. Es wurden 1 Datensätze verarbeitet.',
+	'',
+].join('\n');
+
+/**
+ * Availability, also documentation-derived. The second record is a service
+ * product: Collmex cannot hold stock for it, so the quantity arrives as the
+ * `(NULL)` constant, and the lead time is negative because there is no vendor
+ * agreement to read it from.
+ */
+export const stockAvailableGetResponse = [
+	'STOCK_AVAILABLE;1;1 Max Mustermann;17,000;PCE;5',
+	'STOCK_AVAILABLE;DIENST;1 Max Mustermann;(NULL);STD;-1',
+	'MESSAGE;S;208013;STOCK_AVAILABLE_GET hat 2 Datensätze zurückgegeben',
+	'MESSAGE;S;204020;Datenübertragung erfolgreich. Es wurden 1 Datensätze verarbeitet.',
+	'',
+].join('\n');
