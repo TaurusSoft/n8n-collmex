@@ -39,6 +39,7 @@ This node is **read-only**. It queries Collmex but never creates or changes anyt
 | Delivery           | Get, Get Many | `DELIVERY_GET`        | `CMXDLV`          |
 | Stock              | Get, Get Many | `STOCK_GET`           | `CMXSTK`          |
 | Stock Availability | Get, Get Many | `STOCK_AVAILABLE_GET` | `STOCK_AVAILABLE` |
+| Open Item          | Get Many      | `OPEN_ITEMS_GET`      | `OPEN_ITEM`       |
 
 Each resource has an **Options** collection for the filters the corresponding Collmex query supports, such as date ranges, customer number, free text search and a company override.
 
@@ -140,6 +141,14 @@ The node makes **one call per input item**, and each dropdown makes one more whe
 **Get Many costs one call regardless of how many records come back**, so where a filter can express what you want, it is far cheaper than looking records up one at a time. Fetching every invoice of a customer with one **Get Many** beats feeding a hundred invoice numbers into **Get**.
 
 The node does not bundle several items into one request. Collmex runs each exchange as a single database transaction, so one bad query rolls the whole thing back — bundling would make one malformed item fail every other item in the batch, and n8n could no longer say which one was at fault.
+
+### Open items
+
+**Open Item** returns the unpaid receivables and payables from Collmex accounting. **Side** chooses which: receivables are what customers owe, payables what is owed to vendors. One record carries both a customer and a vendor column pair, and only the side you asked for is filled — the other arrives empty and is left out of the output.
+
+Each item carries the invoice number, document and due dates, days overdue, dunning level, date and fees, and the amount split into **Amount**, **Paid** and **Open**. That is enough to drive a dunning run or a due-date report without a second query.
+
+There is no single **Get**: Collmex identifies an open item by fiscal year, accounting document number and position, and the query takes none of them.
 
 ### Stock and availability
 

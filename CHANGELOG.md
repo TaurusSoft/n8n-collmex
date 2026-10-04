@@ -16,6 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Stock Availability** resource with `Get` and `Get Many`, querying
   `STOCK_AVAILABLE_GET` and mapping the 6 fields of `STOCK_AVAILABLE`. This is
   the available quantity Collmex derives from stock minus due demands.
+- **Open Item** resource with `Get Many`, querying `OPEN_ITEMS_GET` and mapping
+  the 20 fields of `OPEN_ITEM` - the unpaid receivables and payables from
+  accounting, with invoice number, due date, days overdue, dunning level and
+  fees, and the amount split into billed, paid and open. No single `Get`:
+  Collmex identifies an item by fiscal year, document number and position, and
+  the query takes none of them.
 - **Collmex Trigger** node, which starts a workflow when Collmex reports changed
   data. Activating the workflow registers an `API_NOTIFICATION` per selected
   event and deactivating it switches them off; the notification carries no

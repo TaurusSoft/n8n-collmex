@@ -31,10 +31,17 @@ const withDelta = Object.entries(resourceHandlers).filter(
 );
 
 describe('delta query specs', () => {
-	it('covers every resource', () => {
-		// The trigger can only serve a resource that declares one, so a resource
-		// added without a spec would silently never fire.
-		expect(withDelta).toHaveLength(Object.keys(resourceHandlers).length);
+	it('covers every resource whose query supports it', () => {
+		// The trigger can only serve a resource that declares a spec, so one
+		// added without it would silently never fire. The exceptions are listed
+		// rather than counted, so adding a resource forces a decision here
+		// instead of quietly shrinking the invariant.
+		const withoutDelta = Object.entries(resourceHandlers)
+			.filter(([, handler]) => handler.delta === undefined)
+			.map(([name]) => name);
+
+		// OPEN_ITEMS_GET has no Only Changed or System Name field at all.
+		expect(withoutDelta).toEqual(['openItem']);
 	});
 
 	it.each(withDelta.map(([name]) => name))(

@@ -38,6 +38,7 @@ export class Collmex implements INodeType {
 					{ name: 'Customer', value: 'customer' },
 					{ name: 'Delivery', value: 'delivery' },
 					{ name: 'Invoice', value: 'invoice' },
+					{ name: 'Open Item', value: 'openItem' },
 					{ name: 'Product', value: 'product' },
 					{ name: 'Quotation', value: 'quotation' },
 					{ name: 'Sales Order', value: 'salesOrder' },

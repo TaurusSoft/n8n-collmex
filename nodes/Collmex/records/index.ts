@@ -9,6 +9,7 @@ import { cmxord2 } from './cmxord2';
 import { cmxprd } from './cmxprd';
 import { cmxqtn } from './cmxqtn';
 import { cmxstk } from './cmxstk';
+import { openItem } from './openItem';
 import { stockAvailable } from './stockAvailable';
 import type { FieldScope, FieldSpec } from './types';
 
@@ -23,6 +24,7 @@ export const recordLayouts: Record<string, FieldSpec[]> = {
 	CMXPRD: cmxprd,
 	CMXQTN: cmxqtn,
 	CMXSTK: cmxstk,
+	OPEN_ITEM: openItem,
 	STOCK_AVAILABLE: stockAvailable,
 };
 
