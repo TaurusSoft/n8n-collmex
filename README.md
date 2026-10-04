@@ -171,17 +171,13 @@ Writing captures into the repository is optional; the fixtures in `test/fixtures
 
 ## Version history
 
-### 0.4.0
-
-Adds the **Collmex Trigger** node: Collmex notifies n8n when data changes, and
-the node answers by asking what changed. Eight events are supported; polling
-needs no trigger of its own and is documented as a Schedule Trigger recipe
-instead.
-
 ### 0.3.0
 
 Adds the **Stock** and **Stock Availability** resources, covering the stored
-quantities and the availability Collmex derives from them.
+quantities and the availability Collmex derives from them, and the **Collmex
+Trigger** node: Collmex notifies n8n when data changes, and the node answers by
+asking what changed. Eight events are supported; polling needs no trigger of its
+own and is documented as a Schedule Trigger recipe instead.
 
 The `(NULL)` constant Collmex writes where a value cannot exist is now left out
 of the output instead of arriving as a string. Both layouts are pinned against

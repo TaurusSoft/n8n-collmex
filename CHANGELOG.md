@@ -5,51 +5,6 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.4.0]
-
-### Added
-
-- **Collmex Trigger** node, which starts a workflow when Collmex reports changed
-  data. Activating the workflow registers an `API_NOTIFICATION` per selected
-  event and deactivating it switches them off; the notification carries no payload,
-  so the node answers it with an incremental query. Eight of the nine documented
-  events are offered — `Buchung ausgeführt` is left out until there is an
-  accounting resource to query, since a notification with nothing behind it
-  would only wake a workflow up empty.
-- Items carry `collmexEvent` and `collmexResource` beside the record's own
-  fields, so a workflow subscribed to several events can route on them.
-- `DeltaQuerySpec` on each resource handler, stating where that query keeps its
-  company, Only Changed and System Name fields. The trigger uses it to ask any
-  resource for its changes without knowing its layout, and a test checks every
-  spec against the resource's own `buildQuery` so the two cannot drift.
-
-### Changed
-
-- The transport accepts hook and webhook contexts as well as execution
-  contexts, which is what lets the trigger register its notification and fetch
-  records through the same request function and the same credential.
-
-### Note
-
-The `API_NOTIFICATION` layout was checked against a tenant on 2026-10-04, which
-corrected one thing: the documentation calls field 5 value `2` "Löschen", but
-Collmex keeps the notification and only marks it inactive. It stops firing, and
-activating again switches it back on, so the lifecycle closes — but a trigger
-that has run once leaves a row under Administration > Data that only the web
-interface can remove. The node still sends `2`, which is the strongest the API
-offers; the README says what it actually does.
-
-A notification does not say which event raised it, because every event a trigger
-registers points at the same URL. The node therefore queries all selected
-events on each notification, but sends those queries in one exchange, so it
-stays a single API call however many events are selected. If nothing changed it
-acknowledges the notification without starting the workflow.
-
-Polling needs no node of its own: a Schedule Trigger followed by a regular
-Collmex node with Only Changed is already a complete polling setup, at the same
-one call per interval. The README says so rather than shipping a second trigger
-for it.
-
 ## [0.3.0]
 
 ### Added
@@ -61,6 +16,19 @@ for it.
 - **Stock Availability** resource with `Get` and `Get Many`, querying
   `STOCK_AVAILABLE_GET` and mapping the 6 fields of `STOCK_AVAILABLE`. This is
   the available quantity Collmex derives from stock minus due demands.
+- **Collmex Trigger** node, which starts a workflow when Collmex reports changed
+  data. Activating the workflow registers an `API_NOTIFICATION` per selected
+  event and deactivating it switches them off; the notification carries no
+  payload, so the node answers it with an incremental query. Eight of the nine
+  documented events are offered — `Buchung ausgeführt` is left out until there
+  is an accounting resource to query, since a notification with nothing behind
+  it would only wake a workflow up empty.
+- Trigger items carry `collmexEvent` and `collmexResource` beside the record's
+  own fields, so a workflow subscribed to several events can route on them.
+- `DeltaQuerySpec` on each resource handler, stating where that query keeps its
+  company, Only Changed and System Name fields. The trigger uses it to ask any
+  resource for its changes without knowing its layout, and a test checks every
+  spec against the resource's own `buildQuery` so the two cannot drift.
 - `scripts/capture-collmex.mjs`, the script the fixtures were captured with. It
   queries a live tenant and probes one filter per documented field number,
   printing what each query is expected to return, so a record layout can be
@@ -77,14 +45,17 @@ for it.
   cannot hold any, such as services. This is honoured only on the `N` and `M`
   amount types, the ones Collmex documents it for — a text field holding the
   string keeps it, since there it could be content.
+- The transport accepts hook and webhook contexts as well as execution
+  contexts, which is what lets the trigger register its notification and fetch
+  records through the same request function and the same credential.
 
 ### Note
 
-Both layouts are pinned against a live capture taken on 2026-10-04, including
-the `(NULL)` availability of a service product and the derivation of the
-available quantity. Two things still rest on the documentation alone, because
-the test tenant cannot produce them: the FBA stock type, and batch numbers and
-descriptions.
+Both stock layouts are pinned against a live capture taken on 2026-10-04,
+including the `(NULL)` availability of a service product and the derivation of
+the available quantity. Two things still rest on the documentation alone,
+because the test tenant cannot produce them: the FBA stock type, and batch
+numbers and descriptions.
 
 The query filters were probed against the live API as well, which turned up two
 things now written into the option descriptions. The as-of date reports the
@@ -97,6 +68,25 @@ The capture corrected one wrong assumption before release: the company number
 arrives as a bare number in `STOCK_AVAILABLE`, while `CMXSTK` sends it as a
 coded enumeration with the company name behind it. The two record types
 genuinely differ.
+
+The `API_NOTIFICATION` layout was checked the same way, and corrected another:
+the documentation calls field 5 value `2` "Löschen", but Collmex keeps the
+notification and only marks it inactive. It stops firing, and activating again
+switches it back on, so the lifecycle closes — but a trigger that has run once
+leaves a row under Administration > Data that only the web interface can remove.
+The node still sends `2`, which is the strongest the API offers; the README says
+what it actually does.
+
+A notification does not say which event raised it, because every event a trigger
+registers points at the same URL. The node therefore queries all selected events
+on each notification, but sends those queries in one exchange, so it stays a
+single API call however many events are selected. If nothing changed it
+acknowledges the notification without starting the workflow.
+
+Polling needs no node of its own: a Schedule Trigger followed by a regular
+Collmex node with Only Changed is already a complete polling setup, at the same
+one call per interval. The README says so rather than shipping a second trigger
+for it.
 
 ## [0.2.1]
 
