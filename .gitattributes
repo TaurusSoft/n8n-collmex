@@ -7,6 +7,9 @@
 # while the same check passes in CI, where the checkout is LF. Pinning the
 # checkout removes that split.
 #
-# `text=auto` still lets Git detect binary files and leave them alone, which
-# covers the node icons.
+# `text=auto` leaves the text/binary decision to Git per file and normalises
+# only what it finds to be text. Every tracked file here is text today, the SVG
+# icons included, so all of them are normalised - the clause earns its keep for
+# anything binary added later, such as a PNG, which Git then leaves untouched
+# without needing a rule of its own.
 * text=auto eol=lf
