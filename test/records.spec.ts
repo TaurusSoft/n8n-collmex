@@ -10,6 +10,7 @@ import {
 	quotationGetResponse,
 	salesOrderGetResponse,
 	stockAvailableGetResponse,
+	stockAvailableServiceResponse,
 	stockGetResponse,
 	vendorGetResponse,
 } from './fixtures';
@@ -440,14 +441,26 @@ describe('stock records', () => {
 			productId: '1',
 			companyId: 1,
 			companyIdLabel: 'Max Mustermann',
-			quantity: 42,
+			quantity: 50,
 			stockType: 0,
 			stockTypeLabel: 'Frei',
-			value: 126,
+			batchNumber: 0,
+			// Zero because the product carries no costs, not because the field
+			// is unused - the value is product costs times quantity.
+			value: 0,
 			productDescription: 'Kabel USB 2.0 grau',
-			storageLocation: 'Lager A',
+			storageLocation: 'L-K56',
 			baseUnit: 'PCE',
 		});
+	});
+
+	it('returns one record per stock type of the same product', () => {
+		const rows = parseCsv(stockGetResponse).filter((candidate) => candidate[0] === 'CMXSTK');
+		const mapped = rows.map((row) => mapRecord(recordLayouts.CMXSTK, row));
+
+		expect(mapped.map((record) => record.productId)).toEqual(['1', '1']);
+		expect(mapped.map((record) => record.stockTypeLabel)).toEqual(['Frei', 'Gesperrt']);
+		expect(mapped.map((record) => record.quantity)).toEqual([50, 25]);
 	});
 
 	it('maps an availability record onto the expected names', () => {
@@ -456,22 +469,39 @@ describe('stock records', () => {
 		);
 		expect(rows[0]).toHaveLength(6);
 
+		// The company arrives bare here, so no label is split off - CMXSTK
+		// sends the same field as a coded enumeration. The record types differ.
 		expect(mapRecord(recordLayouts.STOCK_AVAILABLE, rows[0])).toEqual({
 			productId: '1',
 			companyId: 1,
-			companyIdLabel: 'Max Mustermann',
-			availableQuantity: 17,
+			availableQuantity: 37,
 			unit: 'PCE',
-			replenishmentTime: 5,
+			replenishmentTime: 0,
 		});
 	});
 
-	it('drops the (NULL) quantity of a product that cannot hold stock', () => {
+	it('keeps a negative availability', () => {
+		// Product 2 holds no stock against a demand of 24. Availability is a
+		// derived figure, so it legitimately goes below zero.
 		const rows = parseCsv(stockAvailableGetResponse).filter(
 			(candidate) => candidate[0] === 'STOCK_AVAILABLE',
 		);
 
-		const mapped = mapRecord(recordLayouts.STOCK_AVAILABLE, rows[1]);
+		expect(mapRecord(recordLayouts.STOCK_AVAILABLE, rows[1])).toEqual({
+			productId: '2',
+			companyId: 1,
+			availableQuantity: -24,
+			unit: 'PCE',
+			replenishmentTime: -1,
+		});
+	});
+
+	it('drops the (NULL) quantity of a product that cannot hold stock', () => {
+		const row = parseCsv(stockAvailableServiceResponse).find(
+			(candidate) => candidate[0] === 'STOCK_AVAILABLE',
+		);
+
+		const mapped = mapRecord(recordLayouts.STOCK_AVAILABLE, row as string[]);
 
 		expect(mapped).not.toHaveProperty('availableQuantity');
 		// The negative lead time is kept: it is Collmex saying it could not

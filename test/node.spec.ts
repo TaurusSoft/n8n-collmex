@@ -17,6 +17,7 @@ import {
 	loginErrorResponse,
 	productGetResponse,
 	stockAvailableGetResponse,
+	stockAvailableServiceResponse,
 	stockGetResponse,
 	vendorGetResponse,
 } from './fixtures';
@@ -362,10 +363,13 @@ describe('stock', () => {
 		);
 
 		expect(sent).toEqual([['STOCK_GET', '1', '', '', '', '', '', '', '']]);
+		// Both records are the same product, one per stock type.
 		expect(items).toHaveLength(2);
-		expect(items[0].json.quantity).toBe(42);
+		expect(items[0].json.quantity).toBe(50);
 		expect(items[0].json.stockTypeLabel).toBe('Frei');
+		expect(items[1].json.quantity).toBe(25);
 		expect(items[1].json.stockTypeLabel).toBe('Gesperrt');
+		expect(items[0].json.storageLocation).toBe('L-K56');
 		expect(items[0].pairedItem).toEqual({ item: 0 });
 	});
 
@@ -431,18 +435,23 @@ describe('stock availability', () => {
 
 		expect(sent).toEqual([['STOCK_AVAILABLE_GET', '1', '', '', '']]);
 		expect(items).toHaveLength(2);
-		expect(items[0].json.availableQuantity).toBe(17);
-		expect(items[0].json.replenishmentTime).toBe(5);
+		// 50 units of free stock less a demand of 13; the 25 blocked units do
+		// not count towards availability.
+		expect(items[0].json.availableQuantity).toBe(37);
+		expect(items[0].json.replenishmentTime).toBe(0);
+		// No stock against a demand of 24, so availability goes negative.
+		expect(items[1].json.availableQuantity).toBe(-24);
+		expect(items[1].json.replenishmentTime).toBe(-1);
 	});
 
 	it('omits the availability of a product that cannot hold stock', async () => {
 		const { items } = await run(
 			{ resource: 'stockAvailability', operation: 'getAll', returnAll: true, options: {} },
-			stockAvailableGetResponse,
+			stockAvailableServiceResponse,
 		);
 
-		expect(items[1].json).not.toHaveProperty('availableQuantity');
-		expect(items[1].json.productId).toBe('DIENST');
+		expect(items[0].json).not.toHaveProperty('availableQuantity');
+		expect(items[0].json.productId).toBe('DIENST');
 	});
 
 	it('maps options onto the documented field numbers', async () => {

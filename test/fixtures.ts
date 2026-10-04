@@ -144,30 +144,54 @@ export const invoiceGetResponse = [
 ].join("\r\n");
 
 /**
- * Stock, and UNLIKE everything above: built from the Collmex documentation,
- * not captured from a tenant - the test account holds no stock to query. It
- * pins the field order and the parsing of the `(NULL)` constant, but it is no
- * evidence of what the wire looks like. Replace it with a real capture once
- * one is available.
+ * A stock query, captured live on 2026-10-04 with 50 units of free and 25 of
+ * blocked stock booked on product 1.
+ *
+ * What makes this one worth keeping: both records belong to the same product,
+ * which is how Collmex reports a stock object per product, stock type and
+ * batch. The quantities arrive as bare integers while the value uses the
+ * German decimal comma, and the stock type carries its label behind the code
+ * the way the other coded enumerations do.
+ *
+ * One edit against the wire: the company name is anonymised.
  */
 export const stockGetResponse = [
-	'CMXSTK;1;1 Max Mustermann;42,000;0 Frei;;126,00;;Kabel USB 2.0 grau;Lager A;PCE',
-	'CMXSTK;1;1 Max Mustermann;8,000;1 Gesperrt;;24,00;;Kabel USB 2.0 grau;Lager A;PCE',
-	'MESSAGE;S;208013;STOCK_GET hat 2 Datensätze zurückgegeben',
+	'CMXSTK;1;1 Max Mustermann;50;0 Frei;0;0,00;;Kabel USB 2.0 grau;L-K56;PCE',
+	'CMXSTK;1;1 Max Mustermann;25;1 Gesperrt;0;0,00;;Kabel USB 2.0 grau;L-K56;PCE',
+	'MESSAGE;S;228033;STOCK_GET hat 2 Datensätze zurückgegeben',
 	'MESSAGE;S;204020;Datenübertragung erfolgreich. Es wurden 1 Datensätze verarbeitet.',
 	'',
-].join('\n');
+].join('\r\n');
 
 /**
- * Availability, also documentation-derived. The second record is a service
- * product: Collmex cannot hold stock for it, so the quantity arrives as the
- * `(NULL)` constant, and the lead time is negative because there is no vendor
- * agreement to read it from.
+ * The matching availability query, captured in the same run.
+ *
+ * Two things this pins. The company arrives as a bare number here, *without*
+ * the label CMXSTK puts behind it - the two record types genuinely differ, so
+ * do not "fix" one to match the other. And the arithmetic is visible: product
+ * 1 reports 37 against 50 units of free stock, because 13 are already demanded
+ * and the 25 blocked units do not count as available. Product 2 holds no stock
+ * against a demand of 24, which is how a negative availability arises.
+ *
+ * Collmex sends no record-count message for this query, only the closing
+ * success - unlike every other query in this file.
  */
 export const stockAvailableGetResponse = [
-	'STOCK_AVAILABLE;1;1 Max Mustermann;17,000;PCE;5',
-	'STOCK_AVAILABLE;DIENST;1 Max Mustermann;(NULL);STD;-1',
-	'MESSAGE;S;208013;STOCK_AVAILABLE_GET hat 2 Datensätze zurückgegeben',
+	'STOCK_AVAILABLE;1;1;37;PCE;0',
+	'STOCK_AVAILABLE;2;1;-24;PCE;-1',
 	'MESSAGE;S;204020;Datenübertragung erfolgreich. Es wurden 1 Datensätze verarbeitet.',
 	'',
-].join('\n');
+].join('\r\n');
+
+/**
+ * CONSTRUCTED, not captured: the test tenant has no service product, so there
+ * is nothing that reports an availability of `(NULL)`. The constant and the
+ * negative lead time are both documented, and this pins how they are parsed,
+ * but it is not evidence of the wire format. Replace it with a real capture
+ * once a non-stockable product exists.
+ */
+export const stockAvailableServiceResponse = [
+	'STOCK_AVAILABLE;DIENST;1;(NULL);STD;-1',
+	'MESSAGE;S;204020;Datenübertragung erfolgreich. Es wurden 1 Datensätze verarbeitet.',
+	'',
+].join('\r\n');

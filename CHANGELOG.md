@@ -26,9 +26,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Note
 
-The record layouts of both new resources come from the documentation. The test
-account carries no stock, so unlike the other resources they are not yet
-pinned against a live capture.
+Both layouts are pinned against a live capture taken on 2026-10-04. Two
+documented details could not be reproduced in the test tenant and rest on the
+documentation alone: the `(NULL)` availability of a non-stockable product, and
+the FBA stock type. Batch numbers, a non-zero stock value, a positive
+replenishment time and the as-of date are likewise unexercised, since the
+tenant has no batch-managed product, no product costs and no backdated
+stocktaking.
+
+The capture corrected one wrong assumption before release: the company number
+arrives as a bare number in `STOCK_AVAILABLE`, while `CMXSTK` sends it as a
+coded enumeration with the company name behind it. The two record types
+genuinely differ.
 
 ## [0.2.1]
 

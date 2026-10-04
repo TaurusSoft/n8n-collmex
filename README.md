@@ -85,7 +85,9 @@ Collmex has **no server-side paging**: every query returns the complete result s
 
 **Stock** returns the stored quantities: Collmex keeps one record per product, stock type and batch, so a single product can come back as several records. The **Stock Type** option restricts this to free, blocked or FBA stock — leaving it unset returns every type. **As Of Date** gives the stock as it stood on that day instead of the current one.
 
-**Stock Availability** is the derived figure, one record per product: the stock of the types marked as available, minus the demands (sales orders, deliveries) due today or earlier. Products that cannot hold stock at all, such as services, come back without an `availableQuantity`. A negative `replenishmentTime` means Collmex could not work the lead time out because the product has no valid vendor agreement.
+**Stock Availability** is the derived figure, one record per product: the stock of the types marked as available, minus the demands (sales orders, deliveries) due today or earlier. Blocked stock does not count towards it, and the figure **goes negative** where demand exceeds stock — so treat it as a balance, not a quantity. Products that cannot hold stock at all, such as services, come back without an `availableQuantity`. A negative `replenishmentTime` means Collmex could not work the lead time out because the product has no valid vendor agreement.
+
+Note that the two resources report the company number differently: `CMXSTK` sends it as a coded enumeration, so **Stock** items carry both `companyId` and `companyIdLabel`, while **Stock Availability** items carry only `companyId`.
 
 ### Incremental sync
 
@@ -105,9 +107,9 @@ Adds the **Stock** and **Stock Availability** resources, covering the stored
 quantities and the availability Collmex derives from them.
 
 The `(NULL)` constant Collmex writes where a value cannot exist is now left out
-of the output instead of arriving as a string. The layouts of both new
-resources come from the documentation — the test account carries no stock, so
-they are not yet pinned against a live capture.
+of the output instead of arriving as a string. Both layouts are pinned against
+a live capture; the `(NULL)` case and the FBA stock type could not be
+reproduced in the test tenant and rest on the documentation alone.
 
 ### 0.2.0
 
