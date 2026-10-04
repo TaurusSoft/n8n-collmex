@@ -18,12 +18,20 @@ describe('assignField', () => {
 		expect(coerce('', 'D')).toEqual({});
 	});
 
-	it('treats the (NULL) constant as an absent field', () => {
+	it('treats the (NULL) constant as an absent amount', () => {
 		// STOCK_AVAILABLE reports the availability of a service product this
 		// way. Parsed as a decimal it would land in the output as the string
 		// '(NULL)', which is worse than saying nothing.
 		expect(coerce('(NULL)', 'N')).toEqual({});
-		expect(coerce('(NULL)', 'C')).toEqual({});
+		expect(coerce('(NULL)', 'M')).toEqual({});
+	});
+
+	it('leaves (NULL) alone on the types Collmex does not document it for', () => {
+		// Deliberately narrow: the constant is only honoured on the amount
+		// types, so a text field can still carry the string as content.
+		expect(coerce('(NULL)', 'C')).toEqual({ v: '(NULL)' });
+		expect(coerce('(NULL)', 'I')).toEqual({ v: '(NULL)' });
+		expect(coerce('(NULL)', 'D')).toEqual({ v: '(NULL)' });
 	});
 
 	describe('text', () => {

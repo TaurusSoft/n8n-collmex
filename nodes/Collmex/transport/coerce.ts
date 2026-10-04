@@ -16,9 +16,13 @@ export type CollmexFieldType = 'C' | 'I' | 'N' | 'M' | 'D';
 const CODED_ENUM = /^(-?\d+)\s+(\S.*)$/;
 
 /**
- * Where a value does not exist at all Collmex writes this constant instead of
- * leaving the field empty - the available stock of a service product, for
- * instance. It is a marker, not data, so it is treated like an empty field.
+ * Where an amount cannot exist at all Collmex writes this constant instead of
+ * leaving the field empty - the available stock of a service product, which
+ * cannot hold stock, is the documented case.
+ *
+ * It is only honoured on the `N` and `M` amount types, deliberately: those are
+ * the ones Collmex documents it for, and reading it as "no value" everywhere
+ * would mean a text field could never legitimately contain the string.
  */
 const NULL_SENTINEL = '(NULL)';
 
@@ -53,9 +57,8 @@ function parseDate(value: string): string {
 
 /**
  * Writes one CSV field onto `target` under `name`, converted to its Collmex
- * type. Empty fields - and the `(NULL)` constant, which means the same thing -
- * are omitted entirely rather than emitted as `null`, so the output only
- * carries what Collmex actually filled in.
+ * type. Empty fields are omitted entirely rather than emitted as `null`, so
+ * the output only carries what Collmex actually filled in.
  *
  * For `I` fields carrying a label the label is emitted alongside as
  * `<name>Label`.
@@ -67,7 +70,7 @@ export function assignField(
 	type: CollmexFieldType,
 ): void {
 	const value = raw.trim();
-	if (value === '' || value === NULL_SENTINEL) return;
+	if (value === '') return;
 
 	switch (type) {
 		case 'C':
@@ -91,6 +94,11 @@ export function assignField(
 
 		case 'N':
 		case 'M':
+			// Only the amount types are read as "no value": that is where
+			// Collmex documents the constant and where it was observed. A text
+			// field holding `(NULL)` is kept, because there it could be content.
+			if (value === NULL_SENTINEL) return;
+
 			target[name] = parseDecimal(value) ?? value;
 			return;
 

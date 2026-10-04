@@ -19,10 +19,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- The `(NULL)` constant Collmex writes where a value cannot exist is now
+- The `(NULL)` constant Collmex writes where an amount cannot exist is now
   treated like an empty field and left out of the output, instead of arriving
   as the string `(NULL)`. It appears on the available stock of products that
-  cannot hold any, such as services.
+  cannot hold any, such as services. This is honoured only on the `N` and `M`
+  amount types, the ones Collmex documents it for — a text field holding the
+  string keeps it, since there it could be content.
 
 ### Note
 
