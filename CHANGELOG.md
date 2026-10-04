@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Collmex Trigger** node, which starts a workflow when Collmex reports changed
   data. Activating the workflow registers an `API_NOTIFICATION` per selected
-  event and deactivating it removes them; the notification carries no payload,
+  event and deactivating it switches them off; the notification carries no payload,
   so the node answers it with an incremental query. Eight of the nine documented
   events are offered — `Buchung ausgeführt` is left out until there is an
   accounting resource to query, since a notification with nothing behind it
@@ -30,6 +30,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   records through the same request function and the same credential.
 
 ### Note
+
+The `API_NOTIFICATION` layout was checked against a tenant on 2026-10-04, which
+corrected one thing: the documentation calls field 5 value `2` "Löschen", but
+Collmex keeps the notification and only marks it inactive. It stops firing, and
+activating again switches it back on, so the lifecycle closes — but a trigger
+that has run once leaves a row under Administration > Data that only the web
+interface can remove. The node still sends `2`, which is the strongest the API
+offers; the README says what it actually does.
 
 A notification does not say which event raised it, because every event a trigger
 registers points at the same URL. The node therefore queries all selected

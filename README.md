@@ -46,7 +46,7 @@ Each resource has an **Options** collection for the filters the corresponding Co
 
 The **Collmex Trigger** node starts a workflow when Collmex reports that data changed. Collmex calls this push mechanism API notifications, and recommends it over polling.
 
-Activating the workflow registers an `API_NOTIFICATION` for each selected event, pointing at the node's webhook URL; deactivating it removes them again. When an event occurs, Collmex calls that URL — **with no payload**, so the node answers the call by asking Collmex what changed, using the same incremental sync the regular node offers.
+Activating the workflow registers an `API_NOTIFICATION` for each selected event, pointing at the node's webhook URL; deactivating it switches them off again. When an event occurs, Collmex calls that URL — **with no payload**, so the node answers the call by asking Collmex what changed, using the same incremental sync the regular node offers.
 
 | Event                               | Fetches             |
 | ----------------------------------- | ------------------- |
@@ -68,6 +68,7 @@ Three things worth knowing:
 - **The notification does not say which event raised it.** Every event registered by one trigger points at the same URL, so the node queries all selected events on each notification. The queries go out in a single request, so it stays one API call per notification — but subscribing to everything means more work per notification than subscribing to what you need.
 - **Collmex sends at most one notification a minute**, and stops after 100 unacknowledged ones. Any query under the trigger's system name acknowledges them, which this node does on every call.
 - **Nothing changed means nothing runs.** If the query comes back empty the node acknowledges the notification without starting the workflow, so there are no empty executions.
+- **Deactivating leaves the entry behind.** The API documents `2` as "delete", but Collmex keeps the notification and only marks it inactive. It no longer fires, and reactivating the workflow switches it back on, so nothing breaks — but a trigger that has been activated once leaves a row under **Administration → Data → API notifications**, and only the web interface can remove it. Changing a trigger's System Name therefore leaves the old entry behind, switched off.
 
 ### System Name
 

@@ -19,9 +19,17 @@ import { eventOptions, findEvent } from './events';
 const NOTIFICATION_RECORD = 'API_NOTIFICATION';
 const NOTIFICATION_FIELDS = 5;
 
-/** Field 5 of `API_NOTIFICATION`. */
+/**
+ * Field 5 of `API_NOTIFICATION`.
+ *
+ * The documentation calls `2` "Löschen", but a tenant checked on 2026-10-04
+ * kept the notification and only ticked its "Inaktiv" box. It is still the
+ * right value to send - it is the strongest the API offers, and an inactive
+ * notification does not fire - but it stops notifications rather than
+ * removing the entry, and the name says so.
+ */
 const ACTIVE = '0';
-const DELETE = '2';
+const DEACTIVATE = '2';
 
 /** Collmex caps the system name at 20 characters. */
 const SYSTEM_NAME_MAX = 20;
@@ -204,13 +212,23 @@ export class CollmexTrigger implements INodeType {
 				return true;
 			},
 
+			/**
+			 * Stops the notifications when the workflow is deactivated.
+			 *
+			 * Collmex keeps the entry and only marks it inactive, so a trigger
+			 * that has been activated once leaves a row behind under
+			 * Administration > Data. It does not fire, and activating again sets
+			 * it back to active, so the lifecycle still closes - but the entry has
+			 * to be cleared by hand if it is not wanted, since the API offers no
+			 * way to read or remove one.
+			 */
 			async delete(this: IHookFunctions): Promise<boolean> {
 				const { systemName, events } = await readSettings(this);
 				const url = this.getNodeWebhookUrl('default') ?? '';
 
 				await collmexRequest.call(
 					this,
-					events.map((eventId) => notificationRow(systemName, eventId, url, DELETE)),
+					events.map((eventId) => notificationRow(systemName, eventId, url, DEACTIVATE)),
 				);
 
 				return true;

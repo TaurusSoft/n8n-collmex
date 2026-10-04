@@ -112,7 +112,11 @@ describe('registration', () => {
 		]);
 	});
 
-	it('deletes with state 2 rather than deactivating', async () => {
+	it('sends state 2 on deactivation', async () => {
+		// Documented as "Löschen", but a tenant checked on 2026-10-04 kept the
+		// entry and only ticked its "Inaktiv" box. Still the right value to send:
+		// it is the strongest the API offers and an inactive notification does
+		// not fire.
 		const { context, sentRecords } = harness(settings, noChanges);
 
 		expect(await node.webhookMethods.default.delete.call(context)).toBe(true);
