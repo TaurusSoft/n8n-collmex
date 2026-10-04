@@ -111,9 +111,7 @@ export async function collmexRequest(
 		returnFullResponse: true,
 	});
 
-	const contentType = (response.headers as Record<string, string | undefined>)?.[
-		'content-type'
-	];
+	const contentType = (response.headers as Record<string, string | undefined>)?.['content-type'];
 	const text = Buffer.from(response.body as ArrayBuffer).toString(
 		resolveResponseEncoding(contentType),
 	);

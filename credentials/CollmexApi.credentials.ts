@@ -38,8 +38,7 @@ export class CollmexApi implements ICredentialType {
 			required: true,
 			default: '',
 			placeholder: '123456',
-			description:
-				'Your Collmex customer or tenant number. It forms part of the API endpoint URL.',
+			description: 'Your Collmex customer or tenant number. It forms part of the API endpoint URL.',
 		},
 		{
 			displayName: 'User',

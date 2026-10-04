@@ -415,11 +415,7 @@ describe('groupDocuments', () => {
 			return fields;
 		};
 
-		const documents = groupDocuments(
-			recordLayouts.CMXINV,
-			[row('1'), row('1'), row('2')],
-			1,
-		);
+		const documents = groupDocuments(recordLayouts.CMXINV, [row('1'), row('1'), row('2')], 1);
 
 		expect(documents).toHaveLength(2);
 		expect(documents[0].positions).toHaveLength(2);

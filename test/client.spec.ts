@@ -24,11 +24,14 @@ function authenticate(
 	overrides: Partial<CollmexCredentials>,
 	records: string[][],
 ): { url: string; body: Buffer } {
-	const result = applyCollmexAuth({ ...credentials, ...overrides }, {
-		url: 'https://www.collmex.de',
-		method: 'POST',
-		body: buildRecordPayload(records),
-	});
+	const result = applyCollmexAuth(
+		{ ...credentials, ...overrides },
+		{
+			url: 'https://www.collmex.de',
+			method: 'POST',
+			body: buildRecordPayload(records),
+		},
+	);
 
 	return { url: result.url, body: result.body as Buffer };
 }
@@ -48,9 +51,7 @@ describe('buildRecordPayload', () => {
 
 describe('applyCollmexAuth', () => {
 	it('fills in the customer specific endpoint', () => {
-		expect(authenticate({}, []).url).toBe(
-			'https://www.collmex.de/c.cmx?123456,0,data_exchange',
-		);
+		expect(authenticate({}, []).url).toBe('https://www.collmex.de/c.cmx?123456,0,data_exchange');
 	});
 
 	it('puts the LOGIN record first', () => {
@@ -65,9 +66,7 @@ describe('applyCollmexAuth', () => {
 		// differently and cannot represent anything above U+00FF at all.
 		const { body } = authenticate({}, [['CUSTOMER_GET', 'Müller']]);
 
-		expect(body.toString('utf8')).toBe(
-			'LOGIN;apiuser;secret;1\nCUSTOMER_GET;Müller\n',
-		);
+		expect(body.toString('utf8')).toBe('LOGIN;apiuser;secret;1\nCUSTOMER_GET;Müller\n');
 		// 'ü' is two bytes in UTF-8, one more than its length in characters.
 		expect(body.length).toBe(body.toString('utf8').length + 1);
 	});

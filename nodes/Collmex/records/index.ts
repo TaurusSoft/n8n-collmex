@@ -32,11 +32,7 @@ export const recordLayouts: Record<string, FieldSpec[]> = {
  * Pass a `scope` to keep only the header or only the line item half of a
  * document record; omit it to get everything flat.
  */
-export function mapRecord(
-	layout: FieldSpec[],
-	row: string[],
-	scope?: FieldScope,
-): IDataObject {
+export function mapRecord(layout: FieldSpec[], row: string[], scope?: FieldScope): IDataObject {
 	const result: IDataObject = {};
 
 	// Field 1 holds the record type. It is how a row is recognised, not data

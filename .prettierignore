@@ -1,0 +1,22 @@
+# Prettier already skips anything in .gitignore, which covers dist and
+# node_modules. This file is for the rest.
+
+# npm owns the lockfile's formatting and rewrites it on every install, so
+# reformatting it only produces churn.
+package-lock.json
+
+# Local editor and agent configuration, not part of the package.
+.claude/
+
+# Agent instruction documents. Prettier reads the ASCII directory tree in
+# AGENTS.md as a list continuation and strips its indentation, which turns the
+# hierarchy into nonsense:
+#
+#   │   └── Example/            becomes    │ └── Example/
+#   │       ├── Example.node.ts            │ ├── Example.node.ts
+#
+# These are also vendored guidance rather than package source, so reformatting
+# them would only conflict with the next scaffold update.
+AGENTS.md
+CLAUDE.md
+.agents/

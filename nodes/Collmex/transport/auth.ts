@@ -38,12 +38,7 @@ export function applyCollmexAuth(
 	credentials: CollmexCredentials,
 	requestOptions: IHttpRequestOptions,
 ): IHttpRequestOptions {
-	const login = formatCsvRow([
-		'LOGIN',
-		credentials.username,
-		credentials.password,
-		'1',
-	]);
+	const login = formatCsvRow(['LOGIN', credentials.username, credentials.password, '1']);
 
 	// The node passes the query records as a string; everything else would be
 	// a programming error rather than something to recover from.
