@@ -1,0 +1,18 @@
+{
+	"node": "@taurussoftware/n8n-nodes-collmex.collmexTrigger",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Finance & Accounting", "Sales"],
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://github.com/TaurusSoft/n8n-collmex?tab=readme-ov-file#credentials"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://github.com/TaurusSoft/n8n-collmex?tab=readme-ov-file#trigger"
+			}
+		]
+	}
+}
