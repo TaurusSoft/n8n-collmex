@@ -1,0 +1,12 @@
+# Everything in this repository is stored with LF, and is checked out with LF
+# too, on every platform.
+#
+# Without the `eol=lf` half, Git on Windows honours core.autocrlf and hands the
+# working tree CRLF files. Prettier is configured with `endOfLine: 'lf'`, so it
+# then reports those files as unformatted - `npm run format:check` fails locally
+# while the same check passes in CI, where the checkout is LF. Pinning the
+# checkout removes that split.
+#
+# `text=auto` still lets Git detect binary files and leave them alone, which
+# covers the node icons.
+* text=auto eol=lf
