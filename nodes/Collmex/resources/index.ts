@@ -3,6 +3,7 @@ import type { INodeProperties } from 'n8n-workflow';
 import { customerDescription, customerHandler } from './customer';
 import { deliveryDescription, deliveryHandler } from './delivery';
 import { invoiceDescription, invoiceHandler } from './invoice';
+import { openItemDescription, openItemHandler } from './openItem';
 import { productDescription, productHandler } from './product';
 import { quotationDescription, quotationHandler } from './quotation';
 import { salesOrderDescription, salesOrderHandler } from './salesOrder';
@@ -17,6 +18,7 @@ export const resourceHandlers: Record<string, ResourceHandler> = {
 	customer: customerHandler,
 	delivery: deliveryHandler,
 	invoice: invoiceHandler,
+	openItem: openItemHandler,
 	product: productHandler,
 	quotation: quotationHandler,
 	salesOrder: salesOrderHandler,
@@ -29,6 +31,7 @@ export const resourceDescriptions: INodeProperties[] = [
 	...customerDescription,
 	...deliveryDescription,
 	...invoiceDescription,
+	...openItemDescription,
 	...productDescription,
 	...quotationDescription,
 	...salesOrderDescription,

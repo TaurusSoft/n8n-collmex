@@ -107,31 +107,42 @@ export async function resolveCompanyId(
 	return (credentials.companyId as number) ?? 1;
 }
 
+/**
+ * Pass `singular` as `undefined` where Collmex has no way to ask for one
+ * record - an open item, for instance, is identified by fiscal year, document
+ * number and position, and the query takes none of them. Offering a `Get` that
+ * cannot narrow to one record would only promise something it cannot keep.
+ */
 export function operationsProperty(
 	resource: string,
-	singular: string,
+	singular: string | undefined,
 	plural: string,
 ): INodeProperties {
+	const getMany = {
+		name: 'Get Many',
+		value: 'getAll',
+		action: `Get many ${plural}`,
+		description: `Get many ${plural}`,
+	};
+
 	return {
 		displayName: 'Operation',
 		name: 'operation',
 		type: 'options',
 		noDataExpression: true,
 		displayOptions: { show: { resource: [resource] } },
-		options: [
-			{
-				name: 'Get',
-				value: 'get',
-				action: `Get a ${singular}`,
-				description: `Get a single ${singular} by its number`,
-			},
-			{
-				name: 'Get Many',
-				value: 'getAll',
-				action: `Get many ${plural}`,
-				description: `Get many ${plural}`,
-			},
-		],
+		options:
+			singular === undefined
+				? [getMany]
+				: [
+						{
+							name: 'Get',
+							value: 'get',
+							action: `Get a ${singular}`,
+							description: `Get a single ${singular} by its number`,
+						},
+						getMany,
+					],
 		default: 'getAll',
 	};
 }

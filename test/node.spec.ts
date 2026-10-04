@@ -15,6 +15,8 @@ import {
 	emptyResultResponse,
 	invoiceGetResponse,
 	loginErrorResponse,
+	openItemsPayableResponse,
+	openItemsResponse,
 	productGetResponse,
 	stockAvailableGetResponse,
 	stockGetResponse,
@@ -472,5 +474,73 @@ describe('credentials', () => {
 		);
 
 		expect(body.split('\n')[0]).toBe('LOGIN;apiuser;secret;1');
+	});
+});
+
+describe('open items', () => {
+	it('queries the receivable side and maps the items', async () => {
+		const { items, sent } = await run(
+			{ resource: 'openItem', operation: 'getAll', returnAll: true, side: '0', options: {} },
+			openItemsResponse,
+		);
+
+		// Field 3 carries the side, and `0` must survive rather than be dropped
+		// as an empty value - which is why it is a text option.
+		expect(sent).toEqual([['OPEN_ITEMS_GET', '1', '0', '', '', '', '']]);
+		expect(items).toHaveLength(1);
+		expect(items[0].json.open).toBe(425.35);
+		expect(items[0].json.customerId).toBe(10000);
+		expect(items[0].json).not.toHaveProperty('vendorId');
+	});
+
+	it('asks the payable side for field 3 of 1', async () => {
+		const { items, sent } = await run(
+			{ resource: 'openItem', operation: 'getAll', returnAll: true, side: '1', options: {} },
+			openItemsPayableResponse,
+		);
+
+		expect(sent[0][2]).toBe('1');
+		expect(items).toHaveLength(0);
+	});
+
+	it('maps options onto the documented field numbers', async () => {
+		const { sent } = await run(
+			{
+				resource: 'openItem',
+				operation: 'getAll',
+				returnAll: true,
+				side: '0',
+				options: {
+					companyId: 2,
+					customerId: '10000',
+					vendorId: '9999',
+					broker: '1',
+					asOfDate: '2026-10-31T00:00:00.000Z',
+				},
+			},
+			openItemsResponse,
+		);
+
+		expect(sent[0]).toEqual([
+			'OPEN_ITEMS_GET',
+			'2', // 2 company
+			'0', // 3 side
+			'10000', // 4 customer
+			'9999', // 5 vendor
+			'1', // 6 broker
+			'20261031', // 7 as of date
+		]);
+	});
+
+	it('offers no single Get, since no field narrows to one item', async () => {
+		const operation = new Collmex().description.properties.find(
+			(property) =>
+				property.name === 'operation' &&
+				property.displayOptions?.show?.resource?.includes('openItem'),
+		);
+
+		expect(operation?.options?.map((option) => (option as { value: string }).value)).toEqual([
+			'getAll',
+		]);
 	});
 });

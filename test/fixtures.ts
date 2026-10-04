@@ -237,3 +237,28 @@ export const employeesResponse = [
 	'MESSAGE;S;204020;Datenübertragung erfolgreich. Es wurden 1 Datensätze verarbeitet.',
 	'',
 ].join('\r\n');
+
+/**
+ * Open items, captured live on 2026-10-04 from the receivable side; the
+ * payable side returned nothing, since the tenant has no vendor invoices.
+ *
+ * Three things this pins. The company arrives as a bare number, unlike
+ * `CMXSTK` and `PRICE_GROUP` which code it with the name behind it. The dates
+ * are compact `JJJJMMTT`, where the customer, product and invoice records send
+ * `TT.MM.JJJJ` - so `parseDate` accepting both is necessary, not precautionary.
+ * And the vendor columns of a receivable arrive empty rather than zeroed, so
+ * they fall out of the output on their own.
+ */
+export const openItemsResponse = [
+	'OPEN_ITEM;1;2026;1;1;10000;Testfirma 1, Dresden;;;1;20260913;2 14 Tage 3%, 30 Tage o.A.;20261014;0;0;;0,00;425,35;0,00;425,35',
+	'MESSAGE;S;208013;OPEN_ITEMS_GET hat 1 Datensätze zurückgegeben',
+	'MESSAGE;S;204020;Datenübertragung erfolgreich. Es wurden 1 Datensätze verarbeitet.',
+	'',
+].join('\r\n');
+
+/** The payable side of the same tenant: nothing owed to vendors. */
+export const openItemsPayableResponse = [
+	'MESSAGE;S;208013;OPEN_ITEMS_GET hat 0 Datensätze zurückgegeben',
+	'MESSAGE;S;204020;Datenübertragung erfolgreich. Es wurden 1 Datensätze verarbeitet.',
+	'',
+].join('\r\n');

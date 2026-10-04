@@ -6,6 +6,7 @@ import {
 	customerGetResponse,
 	deliveryGetResponse,
 	invoiceGetResponse,
+	openItemsResponse,
 	productGetResponse,
 	quotationGetResponse,
 	salesOrderGetResponse,
@@ -27,6 +28,7 @@ describe('record layouts', () => {
 		['CMXDLV', 72],
 		['CMXSTK', 11],
 		['STOCK_AVAILABLE', 6],
+		['OPEN_ITEM', 20],
 	])('%s has %i documented fields', (type, count) => {
 		expect(recordLayouts[type]).toHaveLength(count);
 	});
@@ -517,5 +519,43 @@ describe('stock records', () => {
 		);
 
 		expect(mapRecord(recordLayouts.STOCK_AVAILABLE, rows[2]).replenishmentTime).toBe(0);
+	});
+});
+
+describe('open items', () => {
+	it('maps a receivable onto the expected names', () => {
+		const row = parseCsv(openItemsResponse).find((candidate) => candidate[0] === 'OPEN_ITEM');
+		expect(row).toHaveLength(20);
+
+		// The company is bare here, so no label is split off, and the vendor
+		// columns are empty rather than zeroed, so they are absent entirely.
+		expect(mapRecord(recordLayouts.OPEN_ITEM, row as string[])).toEqual({
+			companyId: 1,
+			fiscalYear: 2026,
+			accountingDocumentNumber: 1,
+			positionNumber: 1,
+			customerId: 10000,
+			customerName: 'Testfirma 1, Dresden',
+			invoiceNumber: '1',
+			documentDate: '2026-09-13',
+			paymentCondition: 2,
+			paymentConditionLabel: '14 Tage 3%, 30 Tage o.A.',
+			dueDate: '2026-10-14',
+			daysOverdue: 0,
+			dunningLevel: 0,
+			dunningFees: 0,
+			amount: 425.35,
+			paid: 0,
+			open: 425.35,
+		});
+	});
+
+	it('normalises the compact date form Collmex sends here', () => {
+		// 20260913, where the customer and invoice records send 11.09.2026.
+		const row = parseCsv(openItemsResponse).find((candidate) => candidate[0] === 'OPEN_ITEM');
+		const mapped = mapRecord(recordLayouts.OPEN_ITEM, row as string[]);
+
+		expect(mapped.documentDate).toBe('2026-09-13');
+		expect(mapped.dueDate).toBe('2026-10-14');
 	});
 });
