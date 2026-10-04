@@ -7,6 +7,7 @@ import type {
 } from 'n8n-workflow';
 import { NodeApiError, NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
+import { loadOptions } from './methods/loadOptions';
 import { groupDocuments, mapRecord, recordLayouts } from './records';
 import { resourceDescriptions, resourceHandlers } from './resources';
 import { collmexRequest, extractRecords } from './transport/client';
@@ -49,6 +50,13 @@ export class Collmex implements INodeType {
 			...resourceDescriptions,
 		],
 	};
+
+	/**
+	 * Fills the group dropdowns from Collmex. Each one is a query of its own,
+	 * made whenever the node is opened, so they are kept to the short lists
+	 * that stay cheap against the daily call limit.
+	 */
+	methods = { loadOptions };
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();

@@ -189,3 +189,51 @@ export const stockAvailableGetResponse = [
 	'MESSAGE;S;204020;Datenübertragung erfolgreich. Es wurden 1 Datensätze verarbeitet.',
 	'',
 ].join('\r\n');
+
+/**
+ * The three group lists, captured live on 2026-10-04. They feed the dropdowns,
+ * which read two columns out of each record rather than going through a record
+ * layout.
+ *
+ * Worth noting in `PRICE_GROUP`: the company arrives as a coded enumeration
+ * with the name behind it, the way CMXSTK sends it and unlike STOCK_AVAILABLE,
+ * and the standard price group is number `0` - so a group id of zero has to
+ * stay selectable.
+ *
+ * One edit against the wire: the company name is anonymised.
+ */
+export const productGroupsResponse = [
+	'PRDGRP;1;Elektro;',
+	'MESSAGE;S;209028;PRODUCT_GROUPS_GET hat 1 Datensätze zurückgegeben',
+	'MESSAGE;S;204020;Datenübertragung erfolgreich. Es wurden 1 Datensätze verarbeitet.',
+	'',
+].join('\r\n');
+
+export const priceGroupsResponse = [
+	'PRICE_GROUP;1 Max Mustermann;0;Standard;0;EUR;0',
+	'MESSAGE;S;208013;PRICE_GROUPS_GET hat 1 Datensätze zurückgegeben',
+	'MESSAGE;S;204020;Datenübertragung erfolgreich. Es wurden 1 Datensätze verarbeitet.',
+	'',
+].join('\r\n');
+
+export const addressGroupsResponse = [
+	'ADRGRP;1;Newsletter',
+	'MESSAGE;S;208013;ADDRESS_GROUPS_GET hat 1 Datensätze zurückgegeben',
+	'MESSAGE;S;204020;Datenübertragung erfolgreich. Es wurden 1 Datensätze verarbeitet.',
+	'',
+].join('\r\n');
+
+/**
+ * Employees, captured live on 2026-10-04 after one was created so the Broker
+ * dropdown had something to list. 24 fields as documented; the dropdown reads
+ * the number on field 2 and the names on 5 and 6, and ignores the rest, which
+ * is bank and address data.
+ *
+ * One edit against the wire: the company name is anonymised.
+ */
+export const employeesResponse = [
+	'EMPLOYEE;1;1 Max Mustermann;Herr;Max;Mustermann;;;;DE;;;;;;;;;;;0;;;0',
+	'MESSAGE;S;208013;EMPLOYEE_GET hat 1 Datensätze zurückgegeben',
+	'MESSAGE;S;204020;Datenübertragung erfolgreich. Es wurden 1 Datensätze verarbeitet.',
+	'',
+].join('\r\n');

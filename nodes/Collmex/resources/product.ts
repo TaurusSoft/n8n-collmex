@@ -7,6 +7,8 @@ import {
 	operationsProperty,
 	optionsProperty,
 	paginationProperties,
+	priceGroupOption,
+	productGroupOption,
 	queryRow,
 	resolveCompanyId,
 	searchTextOption,
@@ -42,22 +44,14 @@ export const productDescription: INodeProperties[] = [
 			default: false,
 			description: 'Whether to return only products that have a price',
 		},
-		{
-			displayName: 'Price Group',
-			name: 'priceGroup',
-			type: 'string',
-			default: '',
-			description:
-				'Internal number of the price group whose price should be returned. Without it Collmex returns the price of the standard group 0.',
-		},
-		{
-			displayName: 'Product Group',
-			name: 'productGroup',
-			type: 'string',
-			default: '',
-			description:
-				'Internal number of the product group. Returns products in that group or any of its subgroups.',
-		},
+		priceGroupOption(
+			'Price group whose price should be returned. Without it Collmex returns the price of the standard group 0',
+		),
+
+		productGroupOption(
+			'Product group to filter by. Returns products in that group or any of its subgroups',
+		),
+
 		searchTextOption,
 		systemNameOption,
 		{

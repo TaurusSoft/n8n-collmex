@@ -29,6 +29,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   company, Only Changed and System Name fields. The trigger uses it to ask any
   resource for its changes without knowing its layout, and a test checks every
   spec against the resource's own `buildQuery` so the two cannot drift.
+- **Product Group**, **Price Group**, **Address Group** and **Broker** are
+  dropdowns filled from Collmex, via `PRODUCT_GROUPS_GET`, `PRICE_GROUPS_GET`,
+  `ADDRESS_GROUPS_GET` and `EMPLOYEE_GET`. Each list is one query made when the
+  node is opened; they read the two or three columns a dropdown needs rather
+  than going through a record layout. **Discount Group** stays a free-text
+  number, because Collmex documents no query that lists discount groups.
 - `scripts/capture-collmex.mjs`, the script the fixtures were captured with. It
   queries a live tenant and probes one filter per documented field number,
   printing what each query is expected to return, so a record layout can be
@@ -45,9 +51,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cannot hold any, such as services. This is honoured only on the `N` and `M`
   amount types, the ones Collmex documents it for — a text field holding the
   string keeps it, since there it could be content.
-- The transport accepts hook and webhook contexts as well as execution
-  contexts, which is what lets the trigger register its notification and fetch
-  records through the same request function and the same credential.
+- The transport accepts hook, webhook and load-options contexts as well as
+  execution contexts. That is what lets the trigger register its notification
+  and fetch changed records, and the dropdowns fill themselves, all through the
+  same request function and the same credential.
 
 ### Note
 
@@ -82,6 +89,19 @@ registers points at the same URL. The node therefore queries all selected events
 on each notification, but sends those queries in one exchange, so it stays a
 single API call however many events are selected. If nothing changed it
 acknowledges the notification without starting the workflow.
+
+The group filters are `options` holding a plain string, not a `resourceLocator`:
+the stored value stays scalar, so nothing about them needs a new type version.
+The value is text rather than a number because the standard price group is
+number `0`, which has to stay selectable. An expression can be used in place of
+a selection.
+
+Their four lists were captured before the code was written, the opposite of the
+usual order and deliberate, since the test account expires on 2026-10-11 and
+code can be written afterwards while a capture cannot. They confirmed the
+documented layouts and turned up one more difference between record types:
+`PRICE_GROUP` and `EMPLOYEE` send the company as a coded enumeration with the
+name behind it, the way `CMXSTK` does and unlike `STOCK_AVAILABLE`.
 
 Polling needs no node of its own: a Schedule Trigger followed by a regular
 Collmex node with Only Changed is already a complete polling setup, at the same

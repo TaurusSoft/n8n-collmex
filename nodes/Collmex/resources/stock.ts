@@ -7,6 +7,7 @@ import {
 	operationsProperty,
 	optionsProperty,
 	paginationProperties,
+	productGroupOption,
 	queryRow,
 	resolveCompanyId,
 	searchTextOption,
@@ -50,14 +51,10 @@ export const stockDescription: INodeProperties[] = [
 		},
 		companyIdOption,
 		onlyChangedOption,
-		{
-			displayName: 'Product Group',
-			name: 'productGroup',
-			type: 'string',
-			default: '',
-			description:
-				'Internal number of the product group, as shown under Product > Product Group. A number that does not exist makes Collmex reject the whole query rather than return nothing.',
-		},
+		productGroupOption(
+			'Product group to filter by. A number that does not exist makes Collmex reject the whole query rather than return nothing',
+		),
+
 		searchTextOption,
 		{
 			displayName: 'Stock Type',
