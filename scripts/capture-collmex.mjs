@@ -26,9 +26,12 @@
  *   node scripts/capture-collmex.mjs --suite stock --out test/captures
  *   node scripts/capture-collmex.mjs --suite stock --dry-run
  *   node scripts/capture-collmex.mjs 'STOCK_GET;1;;;;;;;'
+ *   node scripts/capture-collmex.mjs --batch 'CUSTOMER_GET;9999;1' 'CUSTOMER_GET;10000;1'
  *
  * `--dry-run` prints the query rows and sends nothing, so the field positions
- * can be read without a tenant or credentials.
+ * can be read without a tenant or credentials. `--batch` puts every row into one
+ * exchange, the way the node would send them, and prints the answer in order so
+ * the boundaries between queries are visible.
  *
  * A suite is a named list of queries with what each one is expected to return,
  * so running it is a check and not just a dump. Raw query rows are the escape
@@ -83,10 +86,12 @@ function responseEncoding(contentType) {
 	return charset === 'utf-8' || charset === 'utf8' ? 'utf8' : 'latin1';
 }
 
-async function send(credentials, queryRow) {
+async function send(credentials, queryRows) {
+	const rows = Array.isArray(queryRows) ? queryRows : [queryRows];
+
 	// Field 4 of LOGIN announces the charset of the upload; 1 = UTF-8.
 	const login = `LOGIN;${credentials.user};${credentials.password};1`;
-	const body = Buffer.from(`${login}\n${queryRow}\n`, 'utf8');
+	const body = Buffer.from(`${[login, ...rows].join('\n')}\n`, 'utf8');
 
 	const response = await fetch(`${ENDPOINT}?${credentials.customer},0,data_exchange`, {
 		method: 'POST',
@@ -106,6 +111,7 @@ async function send(credentials, queryRow) {
 	return {
 		text,
 		encoding,
+		lines,
 		data: lines.filter((line) => !line.startsWith('MESSAGE;')),
 		errors: lines.filter((line) => line.startsWith('MESSAGE;E;')),
 	};
@@ -213,12 +219,13 @@ function stockSuite(company) {
 const suites = { stock: stockSuite };
 
 function parseArgs(argv) {
-	const options = { suite: undefined, out: undefined, dryRun: false, rows: [] };
+	const options = { suite: undefined, out: undefined, dryRun: false, batch: false, rows: [] };
 
 	for (let i = 0; i < argv.length; i++) {
 		if (argv[i] === '--suite') options.suite = argv[++i];
 		else if (argv[i] === '--out') options.out = argv[++i];
 		else if (argv[i] === '--dry-run') options.dryRun = true;
+		else if (argv[i] === '--batch') options.batch = true;
 		else options.rows.push(argv[i]);
 	}
 
@@ -233,6 +240,7 @@ async function main() {
 			[
 				'Usage:',
 				'  node scripts/capture-collmex.mjs --suite <name> [--out <dir>] [--dry-run]',
+				"  node scripts/capture-collmex.mjs --batch '<QUERY_ROW>' '<QUERY_ROW>' ...",
 				"  node scripts/capture-collmex.mjs '<QUERY_ROW>' ['<QUERY_ROW>' ...]",
 				'',
 				`Suites: ${Object.keys(suites).join(', ')}`,
@@ -262,8 +270,13 @@ async function main() {
 			};
 	const company = fromEnv('COMPANY', '1');
 
-	const queries =
-		options.suite !== undefined
+	// `--batch` puts every raw row into one exchange instead of one each, which
+	// is how the node would send them. It is the only way to see how Collmex
+	// interleaves the records and the per-query count messages in the answer,
+	// and therefore whether a batched answer can be split back apart.
+	const queries = options.batch
+		? [{ label: 'batch', query: options.rows, capture: true }]
+		: options.suite !== undefined
 			? suites[options.suite](company)
 			: options.rows.map((query, index) => ({ label: `query-${index + 1}`, query }));
 
@@ -274,7 +287,9 @@ async function main() {
 	for (const item of queries) {
 		if (options.dryRun) {
 			console.log(`### ${item.label}`);
-			console.log(`    query    : ${item.query}`);
+			for (const row of Array.isArray(item.query) ? item.query : [item.query]) {
+				console.log(`    query    : ${row}`);
+			}
 			if (item.expect !== undefined) console.log(`    expected : ${item.expect}`);
 			console.log('');
 			continue;
@@ -285,12 +300,20 @@ async function main() {
 		const result = await send(credentials, item.query);
 
 		console.log(`### ${item.label}`);
-		console.log(`    query    : ${item.query}`);
+		for (const row of Array.isArray(item.query) ? item.query : [item.query]) {
+			console.log(`    query    : ${row}`);
+		}
 		if (item.expect !== undefined) console.log(`    expected : ${item.expect}`);
 		console.log(`    charset  : ${result.encoding}`);
 		console.log(`    records  : ${result.data.length}`);
-		for (const line of result.data) console.log(`    > ${line}`);
-		for (const line of result.errors) console.log(`    !! ${line}`);
+
+		// In order, data and messages together: a batched answer can only be
+		// split back into its queries if the order says where each one ends.
+		for (const line of result.lines) {
+			console.log(
+				`    ${line.startsWith('MESSAGE;E;') ? '!!' : line.startsWith('MESSAGE;') ? '--' : '> '} ${line}`,
+			);
+		}
 		console.log('');
 
 		if (result.errors.length > 0 && item.expectError !== true) unexpectedErrors++;
