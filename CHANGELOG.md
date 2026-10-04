@@ -51,10 +51,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cannot hold any, such as services. This is honoured only on the `N` and `M`
   amount types, the ones Collmex documents it for — a text field holding the
   string keeps it, since there it could be content.
-- The transport also accepts load-options contexts, so the dropdowns use the
-  same request function and credential as everything else.- The transport accepts hook and webhook contexts as well as execution
-  contexts, which is what lets the trigger register its notification and fetch
-  records through the same request function and the same credential.
+- The transport accepts hook, webhook and load-options contexts as well as
+  execution contexts. That is what lets the trigger register its notification
+  and fetch changed records, and the dropdowns fill themselves, all through the
+  same request function and the same credential.
 
 ### Note
 

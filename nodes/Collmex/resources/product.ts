@@ -2,13 +2,13 @@ import type { IDataObject, IExecuteFunctions, INodeProperties } from 'n8n-workfl
 
 import type { ResourceHandler } from './shared';
 import {
-	priceGroupOption,
-	productGroupOption,
 	companyIdOption,
 	onlyChangedOption,
 	operationsProperty,
 	optionsProperty,
 	paginationProperties,
+	priceGroupOption,
+	productGroupOption,
 	queryRow,
 	resolveCompanyId,
 	searchTextOption,
