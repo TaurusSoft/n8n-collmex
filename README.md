@@ -63,7 +63,7 @@ Collmex documents a ninth event, `Buchung ausgeführt` (a booking was made). It 
 
 Each item carries `collmexEvent` and `collmexResource` alongside the record's own fields, so a workflow subscribed to several events can route on them.
 
-Three things worth knowing:
+Four things worth knowing:
 
 - **The notification does not say which event raised it.** Every event registered by one trigger points at the same URL, so the node queries all selected events on each notification. The queries go out in a single request, so it stays one API call per notification — but subscribing to everything means more work per notification than subscribing to what you need.
 - **Collmex sends at most one notification a minute**, and stops after 100 unacknowledged ones. Any query under the trigger's system name acknowledges them, which this node does on every call.

@@ -11,7 +11,7 @@ import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 
 import { groupDocuments, mapRecord, recordLayouts } from '../Collmex/records';
 import { resourceHandlers } from '../Collmex/resources';
-import { buildDeltaQuery } from '../Collmex/resources/shared';
+import { buildDeltaQuery, companyIdOption } from '../Collmex/resources/shared';
 import { collmexRequest, extractRecords } from '../Collmex/transport/client';
 import { eventOptions, findEvent } from './events';
 
@@ -160,16 +160,7 @@ export class CollmexTrigger implements INodeType {
 				type: 'collection',
 				placeholder: 'Add option',
 				default: {},
-				options: [
-					{
-						displayName: 'Company ID',
-						name: 'companyId',
-						type: 'number',
-						default: 1,
-						description:
-							'Internal number of the company, as shown under Administration > Company. Overrides the default set in the credentials.',
-					},
-				],
+				options: [companyIdOption],
 			},
 		],
 	};
