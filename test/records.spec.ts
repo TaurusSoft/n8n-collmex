@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { groupDocuments, mapRecord, recordLayouts } from '../nodes/Collmex/records';
 import { parseCsv } from '../nodes/Collmex/transport/csv';
 import {
+	bookingResponse,
 	customerGetResponse,
 	deliveryGetResponse,
 	invoiceGetResponse,
@@ -29,6 +30,7 @@ describe('record layouts', () => {
 		['CMXSTK', 11],
 		['STOCK_AVAILABLE', 6],
 		['OPEN_ITEM', 20],
+		['ACCDOC', 31],
 	])('%s has %i documented fields', (type, count) => {
 		expect(recordLayouts[type]).toHaveLength(count);
 	});
@@ -557,5 +559,82 @@ describe('open items', () => {
 
 		expect(mapped.documentDate).toBe('2026-09-13');
 		expect(mapped.dueDate).toBe('2026-10-14');
+	});
+});
+
+describe('bookings', () => {
+	const rows = parseCsv(bookingResponse).filter((candidate) => candidate[0] === 'ACCDOC');
+
+	it('maps the receivable posting line onto the expected names', () => {
+		expect(rows).toHaveLength(3);
+		expect(rows[0]).toHaveLength(31);
+
+		expect(mapRecord(recordLayouts.ACCDOC, rows[0])).toEqual({
+			companyId: 1,
+			fiscalYear: 2026,
+			accountingDocumentNumber: 1,
+			documentDateText: '13.09.2026',
+			postedAtText: '13.09.2026',
+			text: 'Rechnung Nr 1 vom 13.09.2026',
+			positionNumber: 1,
+			accountNumber: 1400,
+			accountName: 'Forderungen aus Lief. und Leist.',
+			side: 'Soll',
+			amount: 425.35,
+			customerId: 10000,
+			customerName: 'Testfirma 1, Dresden',
+			invoiceNumber: '1',
+			documentDate: '2026-09-13',
+			postedAt: '2026-09-13',
+			postedBy: '2226650',
+		});
+	});
+
+	it('sends side as the literal word, not the coded number the docs describe', () => {
+		// Documented as `I` with 0 = Soll, 1 = Haben, but the wire sends the
+		// words themselves.
+		expect(rows.map((row) => mapRecord(recordLayouts.ACCDOC, row).side)).toEqual([
+			'Soll',
+			'Haben',
+			'Haben',
+		]);
+	});
+
+	it('keeps the sign on a negative amount', () => {
+		const mapped = rows.map((row) => mapRecord(recordLayouts.ACCDOC, row).amount);
+
+		expect(mapped).toEqual([425.35, -357.44, -67.91]);
+	});
+
+	it('attaches the customer only to the receivable posting', () => {
+		// The revenue and tax lines of the same booking carry no customer.
+		const revenueLine = mapRecord(recordLayouts.ACCDOC, rows[1]);
+
+		expect(revenueLine).not.toHaveProperty('customerId');
+		expect(revenueLine).not.toHaveProperty('customerName');
+	});
+
+	it('keeps the compact and the dotted date as separate fields', () => {
+		const mapped = mapRecord(recordLayouts.ACCDOC, rows[0]);
+
+		expect(mapped.documentDateText).toBe('13.09.2026');
+		expect(mapped.documentDate).toBe('2026-09-13');
+	});
+
+	it('shares accountingDocumentNumber and fiscalYear naming with OPEN_ITEM', () => {
+		// Both are accounting resources that identify a record by company,
+		// fiscal year and a document number rather than a single id.
+		const booking = mapRecord(recordLayouts.ACCDOC, rows[0]);
+		const openItem = mapRecord(
+			recordLayouts.OPEN_ITEM,
+			parseCsv(openItemsResponse).find((candidate) => candidate[0] === 'OPEN_ITEM') as string[],
+		);
+
+		expect(Object.keys(booking)).toEqual(
+			expect.arrayContaining(['fiscalYear', 'accountingDocumentNumber']),
+		);
+		expect(Object.keys(openItem)).toEqual(
+			expect.arrayContaining(['fiscalYear', 'accountingDocumentNumber']),
+		);
 	});
 });

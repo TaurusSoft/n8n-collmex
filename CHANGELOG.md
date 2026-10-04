@@ -22,13 +22,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   fees, and the amount split into billed, paid and open. No single `Get`:
   Collmex identifies an item by fiscal year, document number and position, and
   the query takes none of them.
+- **Booking** resource with `Get Many`, querying `ACCDOC_GET` and mapping the 31
+  fields of `ACCDOC` - one item per posting line, with the account, the side,
+  the amount and the customer, vendor or asset the line is attached to. Posting
+  lines are not folded into one item per booking the way document line items
+  are: a booking number restarts every fiscal year, so grouping on it alone
+  could merge two years. No single `Get`, for the same reason as Open Item.
 - **Collmex Trigger** node, which starts a workflow when Collmex reports changed
   data. Activating the workflow registers an `API_NOTIFICATION` per selected
   event and deactivating it switches them off; the notification carries no
-  payload, so the node answers it with an incremental query. Eight of the nine
-  documented events are offered — `Buchung ausgeführt` is left out until there
-  is an accounting resource to query, since a notification with nothing behind
-  it would only wake a workflow up empty.
+  payload, so the node answers it with an incremental query. All nine documented
+  events are offered, `Buchung ausgeführt` among them once the Booking resource
+  existed to serve it — an event with no query behind it would only wake a
+  workflow up empty.
 - A codex file for the trigger, so it carries the same categories and
   documentation links in the node panel as the Collmex node does. It was
   missing, which nothing enforces and nothing would have reported.
@@ -84,6 +90,13 @@ The capture corrected one wrong assumption before release: the company number
 arrives as a bare number in `STOCK_AVAILABLE`, while `CMXSTK` sends it as a
 coded enumeration with the company name behind it. The two record types
 genuinely differ.
+
+`ACCDOC` was captured before the Booking resource was written, and corrected a
+third: `side` is documented as a coded `I` field, `0 = Soll, 1 = Haben`, but the
+tenant sends the literal words `Soll` and `Haben` as text. It is typed `C` to
+match. The same capture showed the posting date arriving twice, dotted text and
+compact form, which is why the record carries both `documentDateText` and
+`documentDate`.
 
 The `API_NOTIFICATION` layout was checked the same way, and corrected another:
 the documentation calls field 5 value `2` "Löschen", but Collmex keeps the

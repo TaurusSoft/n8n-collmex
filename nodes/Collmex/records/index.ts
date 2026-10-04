@@ -1,6 +1,7 @@
 import type { IDataObject } from 'n8n-workflow';
 
 import { assignField } from '../transport/coerce';
+import { accdoc } from './accdoc';
 import { cmxdlv } from './cmxdlv';
 import { cmxinv } from './cmxinv';
 import { cmxknd } from './cmxknd';
@@ -16,6 +17,7 @@ import type { FieldScope, FieldSpec } from './types';
 export type { FieldScope, FieldSpec } from './types';
 
 export const recordLayouts: Record<string, FieldSpec[]> = {
+	ACCDOC: accdoc,
 	CMXDLV: cmxdlv,
 	CMXINV: cmxinv,
 	CMXKND: cmxknd,

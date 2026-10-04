@@ -262,3 +262,33 @@ export const openItemsPayableResponse = [
 	'MESSAGE;S;204020;Datenübertragung erfolgreich. Es wurden 1 Datensätze verarbeitet.',
 	'',
 ].join('\r\n');
+
+/**
+ * A booking query, captured live on 2026-10-04: the three posting lines of the
+ * invoice captured for `openItemsResponse`, requested once unscoped and once
+ * filtered to invoice number '1' - both returned the identical three rows,
+ * confirming the invoice number field actually filters.
+ *
+ * What this pins: the company arrives bare, like `OPEN_ITEM` and
+ * `STOCK_AVAILABLE` and unlike `CMXSTK`. The posting date and the date it was
+ * recorded both arrive twice, dotted text and compact `D` form. `side` is the
+ * literal word `Soll` or `Haben`, not the coded number the documentation
+ * describes. Amounts can be negative (`-357,44`), which the German-comma
+ * parser has to carry the sign through. And the customer is attached only to
+ * the receivable posting, not to the revenue or tax lines of the same
+ * booking - Collmex leaves those two fields empty there rather than repeating
+ * it. Field 31, `Gebucht von`, is `2226650`, the same interactive user id
+ * `loginErrorResponse` rejects for API use - the same tenant throughout.
+ *
+ * One edit against the wire: the company name is anonymised in the booking
+ * text. The account names are Collmex's own standard chart of accounts and
+ * untouched.
+ */
+export const bookingResponse = [
+	'ACCDOC;1;2026;1;13.09.2026;13.09.2026;Rechnung Nr 1 vom 13.09.2026;1;1400;Forderungen aus Lief. und Leist.;Soll;425,35;10000;Testfirma 1, Dresden;;;;;;;1;;;;;;;20260913;20260913;;2226650',
+	'ACCDOC;1;2026;1;13.09.2026;13.09.2026;Rechnung Nr 1 vom 13.09.2026;2;8400;Erlöse 19% Umsatzsteuer;Haben;-357,44;;;;;;;;;1;;;;;;;20260913;20260913;;2226650',
+	'ACCDOC;1;2026;1;13.09.2026;13.09.2026;Rechnung Nr 1 vom 13.09.2026;3;1776;Umsatzsteuer 19%;Haben;-67,91;;;;;;;;;1;;;;;;;20260913;20260913;;2226650',
+	'MESSAGE;S;208013;ACCDOC_GET hat 1 Datensätze zurückgegeben',
+	'MESSAGE;S;204020;Datenübertragung erfolgreich. Es wurden 1 Datensätze verarbeitet.',
+	'',
+].join('\r\n');

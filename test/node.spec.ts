@@ -11,6 +11,7 @@ import type { CollmexCredentials } from '../nodes/Collmex/transport/auth';
 import { applyCollmexAuth } from '../nodes/Collmex/transport/auth';
 import { parseCsv } from '../nodes/Collmex/transport/csv';
 import {
+	bookingResponse,
 	customerGetResponse,
 	emptyResultResponse,
 	invoiceGetResponse,
@@ -537,6 +538,96 @@ describe('open items', () => {
 			(property) =>
 				property.name === 'operation' &&
 				property.displayOptions?.show?.resource?.includes('openItem'),
+		);
+
+		expect(operation?.options?.map((option) => (option as { value: string }).value)).toEqual([
+			'getAll',
+		]);
+	});
+});
+
+describe('bookings', () => {
+	it('queries with just the company by default', async () => {
+		const { sent } = await run(
+			{ resource: 'booking', operation: 'getAll', returnAll: true, options: {} },
+			bookingResponse,
+		);
+
+		expect(sent).toEqual([
+			['ACCDOC_GET', '1', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''],
+		]);
+	});
+
+	it('maps options onto the documented field numbers', async () => {
+		const { sent } = await run(
+			{
+				resource: 'booking',
+				operation: 'getAll',
+				returnAll: true,
+				options: {
+					companyId: 2,
+					fiscalYear: 2026,
+					bookingNumber: '1',
+					accountNumber: '1400',
+					costCenter: '10',
+					customerId: '10000',
+					vendorId: '9999',
+					assetId: '5',
+					invoiceNumber: '1',
+					tripId: '3',
+					searchText: 'Rechnung',
+					dateFrom: '2026-01-01T00:00:00.000Z',
+					dateTo: '2026-12-31T00:00:00.000Z',
+					includeCancellations: true,
+					onlyChanged: true,
+					systemName: 'n8n',
+					paymentId: '7',
+				},
+			},
+			bookingResponse,
+		);
+
+		expect(sent[0]).toEqual([
+			'ACCDOC_GET',
+			'2', // 2 company
+			'2026', // 3 fiscal year
+			'1', // 4 booking number
+			'1400', // 5 account number
+			'10', // 6 cost center
+			'10000', // 7 customer
+			'9999', // 8 vendor
+			'5', // 9 asset
+			'1', // 10 invoice number
+			'3', // 11 trip
+			'Rechnung', // 12 free text
+			'20260101', // 13 date from
+			'20261231', // 14 date to
+			'1', // 15 include cancellations
+			'1', // 16 only changed
+			'n8n', // 17 system name
+			'7', // 18 payment
+		]);
+	});
+
+	it('returns one item per posting line rather than folding them', async () => {
+		// Unlike quotations, orders, invoices and deliveries, a booking's
+		// position rows are not grouped into one item - a booking number resets
+		// every fiscal year, so grouping on it alone could merge two years.
+		const { items } = await run(
+			{ resource: 'booking', operation: 'getAll', returnAll: true, options: {} },
+			bookingResponse,
+		);
+
+		expect(items).toHaveLength(3);
+		expect(items.map((item) => item.json.side)).toEqual(['Soll', 'Haben', 'Haben']);
+		expect(items.map((item) => item.json.accountingDocumentNumber)).toEqual([1, 1, 1]);
+	});
+
+	it('offers no single Get, since no field narrows to one record', async () => {
+		const operation = new Collmex().description.properties.find(
+			(property) =>
+				property.name === 'operation' &&
+				property.displayOptions?.show?.resource?.includes('booking'),
 		);
 
 		expect(operation?.options?.map((option) => (option as { value: string }).value)).toEqual([

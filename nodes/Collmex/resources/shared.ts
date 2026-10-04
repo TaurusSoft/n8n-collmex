@@ -273,6 +273,14 @@ export const customerIdOption: INodeProperties = {
 	description: 'Return only records belonging to this customer number',
 };
 
+export const vendorIdOption: INodeProperties = {
+	displayName: 'Vendor ID',
+	name: 'vendorId',
+	type: 'string',
+	default: '',
+	description: 'Return only records belonging to this vendor number',
+};
+
 export const onlyChangedOption: INodeProperties = {
 	displayName: 'Only Changed',
 	name: 'onlyChanged',
