@@ -1,6 +1,23 @@
 import type { IExecuteFunctions, INodeProperties } from 'n8n-workflow';
 
 /**
+ * Where a query keeps the three fields a delta fetch needs. Every query puts
+ * them somewhere different, so each resource states its own numbers.
+ *
+ * This is what lets the trigger ask a resource for its changes without
+ * knowing anything about that resource's field layout. A test checks each
+ * spec against the resource's own `buildQuery`, so the two cannot drift.
+ */
+export interface DeltaQuerySpec {
+	/** Query record type, e.g. `CUSTOMER_GET`. */
+	queryName: string;
+	fieldCount: number;
+	companyField: number;
+	onlyChangedField: number;
+	systemNameField: number;
+}
+
+/**
  * A resource's query record type plus how to build one query row for it.
  */
 export interface ResourceHandler {
@@ -11,7 +28,33 @@ export interface ResourceHandler {
 	 * document record types, which spread one document over several rows.
 	 */
 	documentIdIndex?: number;
+	/**
+	 * Set where the query supports incremental sync, which is every resource
+	 * the trigger can serve.
+	 */
+	delta?: DeltaQuerySpec;
 	buildQuery(context: IExecuteFunctions, itemIndex: number): Promise<string[]>;
+}
+
+/**
+ * Builds the query that asks Collmex for nothing but the records changed since
+ * the last request made under `systemName`.
+ *
+ * Collmex keeps that timestamp per query type *and* system name, so one name
+ * can serve several resources without them consuming each other's changes.
+ */
+export function buildDeltaQuery(
+	spec: DeltaQuerySpec,
+	companyId: number,
+	systemName: string,
+): string[] {
+	const row = queryRow(spec.queryName, spec.fieldCount);
+
+	setField(row, spec.companyField, companyId);
+	setField(row, spec.onlyChangedField, true);
+	setField(row, spec.systemNameField, systemName);
+
+	return row;
 }
 
 /** Creates an empty query row of the right length with the record type set. */

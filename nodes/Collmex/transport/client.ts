@@ -1,4 +1,9 @@
-import type { IExecuteFunctions, JsonObject } from 'n8n-workflow';
+import type {
+	IExecuteFunctions,
+	IHookFunctions,
+	IWebhookFunctions,
+	JsonObject,
+} from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
 
 import { COLLMEX_BASE_URL } from './auth';
@@ -21,6 +26,17 @@ export interface CollmexMessage {
 }
 
 export const MESSAGE_RECORD = 'MESSAGE';
+
+/**
+ * The contexts this transport can be called from.
+ *
+ * The node executes from `IExecuteFunctions`, while the trigger registers its
+ * notification from `IHookFunctions` and fetches the changed records from
+ * `IWebhookFunctions`. All three are members of `IAllExecuteFunctions`, which
+ * is what `httpRequestWithAuthentication` is typed against, so one request
+ * function serves all of them.
+ */
+export type CollmexContext = IExecuteFunctions | IHookFunctions | IWebhookFunctions;
 
 /**
  * Serialises the query records; the LOGIN line is added by `authenticate`.
@@ -73,9 +89,9 @@ export function findError(messages: CollmexMessage[]): CollmexMessage | undefine
 }
 
 export function toApiError(
-	context: IExecuteFunctions,
+	context: CollmexContext,
 	error: CollmexMessage,
-	itemIndex: number,
+	itemIndex?: number,
 ): NodeApiError {
 	return new NodeApiError(
 		context.getNode(),
@@ -83,7 +99,9 @@ export function toApiError(
 		{
 			message: error.text,
 			description: `Collmex message ${error.id}`,
-			itemIndex,
+			// A trigger has no input item to blame, so the index is left off
+			// rather than reported as item 0.
+			...(itemIndex === undefined ? {} : { itemIndex }),
 		},
 	);
 }
@@ -98,9 +116,9 @@ export function toApiError(
  * node, so the placeholder URL below is expected to be replaced.
  */
 export async function collmexRequest(
-	this: IExecuteFunctions,
+	this: CollmexContext,
 	records: string[][],
-	itemIndex: number,
+	itemIndex?: number,
 ): Promise<string[][]> {
 	const response = await this.helpers.httpRequestWithAuthentication.call(this, 'collmexApi', {
 		method: 'POST',

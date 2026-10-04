@@ -78,6 +78,14 @@ export const stockDescription: INodeProperties[] = [
 export const stockHandler: ResourceHandler = {
 	resultType: 'CMXSTK',
 
+	delta: {
+		queryName: 'STOCK_GET',
+		fieldCount: FIELD_COUNT,
+		companyField: 2,
+		onlyChangedField: 7,
+		systemNameField: 8,
+	},
+
 	async buildQuery(context: IExecuteFunctions, itemIndex: number): Promise<string[]> {
 		const operation = context.getNodeParameter('operation', itemIndex) as string;
 		const options = context.getNodeParameter('options', itemIndex, {}) as IDataObject;

@@ -46,6 +46,14 @@ export const vendorDescription: INodeProperties[] = [
 export const vendorHandler: ResourceHandler = {
 	resultType: 'CMXLIF',
 
+	delta: {
+		queryName: 'VENDOR_GET',
+		fieldCount: FIELD_COUNT,
+		companyField: 3,
+		onlyChangedField: 7,
+		systemNameField: 8,
+	},
+
 	async buildQuery(context: IExecuteFunctions, itemIndex: number): Promise<string[]> {
 		const operation = context.getNodeParameter('operation', itemIndex) as string;
 		const options = context.getNodeParameter('options', itemIndex, {}) as IDataObject;

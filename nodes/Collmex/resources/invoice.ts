@@ -90,6 +90,14 @@ export const invoiceDescription: INodeProperties[] = [
 
 export const invoiceHandler: ResourceHandler = {
 	resultType: 'CMXINV',
+
+	delta: {
+		queryName: 'INVOICE_GET',
+		fieldCount: FIELD_COUNT,
+		companyField: 3,
+		onlyChangedField: 9,
+		systemNameField: 10,
+	},
 	documentIdIndex: 1,
 
 	async buildQuery(context: IExecuteFunctions, itemIndex: number): Promise<string[]> {

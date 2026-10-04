@@ -81,6 +81,14 @@ export const customerDescription: INodeProperties[] = [
 export const customerHandler: ResourceHandler = {
 	resultType: 'CMXKND',
 
+	delta: {
+		queryName: 'CUSTOMER_GET',
+		fieldCount: FIELD_COUNT,
+		companyField: 3,
+		onlyChangedField: 11,
+		systemNameField: 12,
+	},
+
 	async buildQuery(context: IExecuteFunctions, itemIndex: number): Promise<string[]> {
 		const operation = context.getNodeParameter('operation', itemIndex) as string;
 		const options = context.getNodeParameter('options', itemIndex, {}) as IDataObject;

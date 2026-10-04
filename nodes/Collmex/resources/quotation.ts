@@ -58,6 +58,14 @@ export const quotationDescription: INodeProperties[] = [
 
 export const quotationHandler: ResourceHandler = {
 	resultType: 'CMXQTN',
+
+	delta: {
+		queryName: 'QUOTATION_GET',
+		fieldCount: FIELD_COUNT,
+		companyField: 3,
+		onlyChangedField: 9,
+		systemNameField: 10,
+	},
 	documentIdIndex: 1,
 
 	async buildQuery(context: IExecuteFunctions, itemIndex: number): Promise<string[]> {
